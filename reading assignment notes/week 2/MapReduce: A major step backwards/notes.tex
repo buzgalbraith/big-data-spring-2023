@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\title{MapReduce: A major step backwards}
+\author{wbg231 }
+\date{December 2022}
+\newcommand{\R}{$\mathbb{R}$}
+\newcommand{\B}{$\beta$}
+\newcommand{\A}{$\alpha$}
+\newcommand{\D}{\Delta}
+
+\newcommand{\avector}[2]{(#1_2,\ldots,#1_{#2})}
+\newcommand{\makedef}[2]{$\textbf{#1}$:#2 }
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\begin{document}
+
+\maketitle
+
+\section{introduction}
+\begin{itemize}
+\item \href{https://brightspace.nyu.edu/content/enforced/261985-SP23_DS-GA_1004_1_001/dewitt_stonebreaker_2008.pdf}{paper link}
+\item map reduce is pretty hyped 
+\item but it is bad for the data base community
+\begin{itemize}
+    \item a step backwards in the programming paradigm for large scale data intensive apps
+    \item a sub optimal implementation in that it uses brute force instead of indexing 
+    \item not novel at all it represents a specific implementation of well known techniques developed nearly 25 years ago
+    \item missing most of the features that are included in most's data base management systems 
+    \item incomparable with all of the tools data base management system users depend on 
+\end{itemize}
+\section{what is map reduce}
+\item map program reads a set of records from an input file does any desired filtering and or transformations and then outputs a set of records of the form key value pair . a split function portions the records into m disjoint buckets by applying a function to the key of each output record. 
+\item there are generally multiple instances of the map program running on different nodes of a complete cluster. each dealing with a disjoint part of the data assigned by the controller
+\item all map instances use the say hash function, and thus all output records with the same hash value will be in corresponding output files. 
+\item n instances of the reduce function are then run, which run on value pairs. 
+\section{map reduce is a step backwards}
+\item the db community argues that, schemes are good, separation of the schema from the app is good, high level access languages are good. 
+\item map reduce has none of these features and thus is a step backwards towards the 1960's
+\item map reduce does not follow a schema, and has no controls to make sure that data is following this schema and thus not breaking the application
+\item it is also critical to serrate the schema form the appellation program if a programmer wants to write  anew app against a data set he or she must discover the record structure. 
+\item the schema is not stored in map reduce so it is hard for the program er themselves to obey it.
+\item map reduce also rallies on low level languages, which over complicates data manipulation in contrast to something like sql. this means the data is not safe, is harder for the programmer, and is harder to optimize. 
+\item map reduce in reeling on key value pairs sets its self up in a way that could be viewed as relational.
+\section{review of first section}
+\subsection{schema are good}
+\item i think this is the most important section so i am going to go through it at a high level again 
+\item schema impose that fields and there data types kept in storage. 
+\item data base systems validate that input records obey this schema and thus prevent an application from adding bad data to a database 
+\item map reduce does not do this so unchecked data can be added to a database. 
+\subsection{separation of the schema from the app is good.}
+\item in databases the schema structure is stored separately from the application, and a new app can view it. 
+\item in map reduce the schema is not stored, so if a new program wants to work with the same dataset they have to actually look at the code to know what type of data could go into each attribute and sometimes this may not be followed. this could lead to more issues with the data. 
+\subsection{high level access languages are good}
+\item in the 1970's the database communicate concluded that having a high level language that can speak to a relational database management system was ideal for working with databases versus a lower level language that requires an algorithm for data access
+\item high level code is easier to write, modify and maintain
+\item map reduce is low level and thus harder to work with
+\section{map reduce is a poor implementation}
+\item modern data base management systems use b-tree indexes to accelerate access to data. so there is a trade off between indexing and brute force searching, but often queering is the better choice in terms of time 
+\item map reduce has no indexing 
+\item There are other sql based implementations that offer pluralization faster than map reduce
+\item  there is also an issue known as skew, which is basically during the map phase records that have a high variance despite having the same key, causes some reduce instances to take longer to run than others. this means that the resulting execution time is bottle necked by the slowest reduce instance 
+\item there are work around for skew that map reduce could implement
+\item map reduce reads and writes a lot of files to local machines, but because of the scale of pluralization it is likely that eventually two nodes will try to read or write to the same file reducing in large performance drop offs. 
+\section{map reduce is not novel}
+\item the idea behind map reduce is approx 20 years old 
+\section{map reduce is missing features}
+\item this is just kind of a list of features missing from map reduce, and more or less saying that even putting aside performance issues the functionality of map reduce is far bellow that of modern data base management systems
+\section{map reduce is incompatible with the data base management system tools}
+\item map reduce is not sql compatible so has no access to a pretty long list of tools with out which it is hard for the end user to work with 
+\section{in summary}
+\item it is good that map reduce has gotten a larger group of people talking about data base management systems, but they should be understood with the lessons of the last 20 years and flaws of the system in mind
+\item there are lessons to learn from map reduce and hopefully it can be a jumping off point for research going forwards. 
+\end{itemize}
+\end{document}

@@ -1,0 +1,57 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\title{The Hadoop Distributed File System}
+\author{wbg231 }
+\date{December 2022}
+\newcommand{\R}{$\mathbb{R}$}
+\newcommand{\B}{$\beta$}
+\newcommand{\A}{$\alpha$}
+\newcommand{\D}{\Delta}
+
+\newcommand{\avector}[2]{(#1_2,\ldots,#1_{#2})}
+\newcommand{\makedef}[2]{$\textbf{#1}$:#2 }
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\begin{document}
+
+\maketitle
+
+\section*{the Hadoop Distributed File System}
+\begin{itemize}
+\item \href{https://brightspace.nyu.edu/d2l/le/lessons/261985/topics/8157424}{paper link}
+\section{abstract}
+\item Hadoop is defined to store very large data sets reliably and to stream those data sets at high band witch to user applications. 
+\item distributing storage and computation across many servers allow resources to grow with demand and remain economical at every size.
+\section{intro}
+\item hadoop implements map reduce
+\item all hadoop code open source
+\item HDFS is the file system of hadoop
+\item metadata is stored on servers called Name nodes, application data are stored on servers called Data Nodes
+\item all servers are fully connected.
+\item data is replicated on multiple servers to increase reliability, and also allows for increased data transfer as band with is multiplied. 
+\item can partition multiple sections of a file system into different name nodes, in order to add further levels of pluralization
+\section{architecture}
+\subsection{name node}
+\item the HDFS name space is a hierarchy of files and directories. 
+\item files are represented in the name node by inodes, which record attributes of the files like permissions 
+\item file content are split into file blocks that are replicated by multiple data nodes. 
+\item the NameNode main taints the namespace tree and the mapping of file blocks to DataNodes
+\item when writing data the name node selects multiple data nodes to replicate and store the data.
+\item there is one name node for each cluster that is kept entirely in RAM
+\item the inode data and list of blocks belonging to each file comprise the meta data of the name system called the image
+\item the persistent record of the image stored in the local hosts native files is called a checkpoint 
+\item the name node also stored a record of changes made to the image called the journal 
+\item on restart the state of the name space comes from the  
+\subsection{data nodes}
+\item each block replica on a data node is represented by two files in the local hosts file system. the first file contains the data its self the second is block's metadata.
+\item there is a check to make sure all data notes meet the correct software version prior to run 
+\item data nodes storage there storage id which uniquely identify them regardless of IP address
+\item data node also reports what block replica it has 
+\item the data nodes send heartbeats which are reports that they are still running, the name node responds to these heartbeats with further instructions 
+\section{HDFS Client}
+\item the HDFS client is how user apps interact with the file system 
+\item has most typical file structure operations
+\item HDFS client directly interacts with the data nodes as well as name nodes
+
+\end{itemize}
+\end{document}
