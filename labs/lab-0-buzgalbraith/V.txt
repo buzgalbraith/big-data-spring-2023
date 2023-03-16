@@ -1,0 +1,8 @@
+What is the policy for late assignment submissions in this class?
+
+> from the sylabus, "For lab assignments, you will have two (2) slip days which can be used however you see fit over the entire semester.
+  For example, you can turn in one assignment two days late, or two assignments one day late each, without penalty. Beyond slip days, late assignments will incur a 
+  20% point reduction for each additional day late.  No assignment will be accepted more than 5 days after the due date. 
+  Exceptions to the above may be granted in case of emergencies, but contact the instructor as soon as possible."  there is no mention of late quizes so I am going to assume 
+  if you miss a quiz you missed it. 
+
