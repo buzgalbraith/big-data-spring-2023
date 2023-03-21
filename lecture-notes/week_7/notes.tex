@@ -1,0 +1,173 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\title{Big data lecture 7: dask}
+\author{wbg231 }
+\date{December 2022}
+\newcommand{\R}{$\mathbb{R}$}
+\newcommand{\B}{$\beta$}
+\newcommand{\A}{$\alpha$}
+\newcommand{\D}{\Delta}
+
+\newcommand{\avector}[2]{(#1_2,\ldots,#1_{#2})}
+\newcommand{\makedef}[2]{$\textbf{#1}$:#2 }
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\begin{document}
+
+\maketitle
+
+\section{introduction}
+\begin{itemize}
+\subsection{how is lab 3 going}
+    \item tbh i have nto started it 
+    \item there is key skew  so like make sure you start working on it reasonably early. 
+    \item converting sql to pyspark is hard. 
+    \item item here we are spending a lot of time with the documentation it is of variable quality plan ahead for bad documentation
+
+\subsection{road map}
+\item we have done introductio, relational database, map-reduce, hadoop, spark, column oriented storage
+\item now we are going to do dask 
+\item then we are going to deal with algos
+\subsection{what we have seen so far}
+\item started with file systems 
+\item then we went into relational databases, this was restricting data into schema 
+\item then map reduce and HDFS that was much more about restricting the data rather than restricting data 
+\item but it is a pain to code in map reduce. it is fun once you learn how to do it, but not a good time 
+\item then we got to spark which adds more high level interface to some of the ideas from map reduce. spark gets away from that by getting granular acess to the data, and having all data stored in an rdd
+\item then they put the data frame interface on top of the rdd so we can do all the sql stuff.
+\item then there is PARQUET and column oriented storage
+\subsection{spark}
+\item Spark is super powerful and super popular
+\item it works well 
+\item but it does not do everything. 
+\item so... what are some kind of computations that do not naturally fit into spark? 
+\begin{enumerate}
+    \item hmmm maybe cases where data is in from many previous rdds so like it has wide dependencies. that could cause spark to be quite slow, but i mean it would not be well suited for it.  
+    \item it is still fundamentally reliant  on the ability to do things in parallel so if there are cases where you need to to compute everything before moving on it could be non-ideal
+    \item everything is done in rdds which is bad 
+    \item some problems can only be broken to some level like gradient descent (all gradients must be computed at a single step before we can move to another step) or full joins, matrix stuff
+\end{enumerate}
+\item the point is spark is good sometimes but not all the time 
+\subsection{issues with spark}
+\item data that does not fit into an rdd (sometimes you can force it)
+\item there is no python integration  
+\item machine learning and things that are GPU oriented are tough with spark 
+\item hard to zoom in or out of data. 
+\item can not really index data.
+\section{dask}
+\subsection{intro}
+\item dark is like spark, if spark was written by sci py people 
+\item Python based distributed computation 
+\item spark (is in scala)
+\item this was written for dealing with scientific computing
+\item it is scaled up down in an ez way 
+\item there are a lot of little diferences as well, the documentation is also pretty bad. 
+\subsection{delayed computation abd task graphs}
+\item dask builds complex computations by composing deferd computations into a task graph 
+\item like spark nothing happens unitl yoou take an action 
+\item if you use the dask.visualize() then you can visualize your code. that is helpful for understanding what happens 
+\item nothing happens until an action is taken
+\subsection{collections in dask} 
+\item there are three collection interfaces that do difrent things 
+\item bags
+\begin{itemize}
+    \item similar to an rdd, 
+    \item distributed collection of abstrarly structured data. (that is there is no order to the data )
+    \item it serves the same role, of partioning data into small units
+    \item 
+\end{itemize}
+\item data frames
+\begin{itemize}
+    \item a wrapper on top of pandas data frames 
+    \item the interfacte is pretty consistent 
+    \item structured tabular data with a schema
+    \item pretty similar to data frames in spark (but it is on pandas instead of rdds)
+\end{itemize}
+\item arrays (think tensors (x,y,z,w)) that is like bigger than matricies 
+\begin{itemize}
+    \item distributed n dimensional arrays
+    \item the idea is to devide tensor data in multiple dimensions simultatinasly
+    \item this is what stands out in dask there is no way to use this in spark
+    \item these are pretty simialr to nd arrays in numpy 
+\end{itemize}
+\item unlike spark there is no explicit idea of a transformation ie (rdd$\rightarrow$rdd)
+\item that is a coltural difrence between scala and python
+\subsection{bags}
+\item pretty close to a spark rdd
+\item in dask you kind of need the bag interface
+\item bags collect items and partion them, and give you some bassic operations like mapping a funciton over it filtering it, returinign ture or false, slicing, aggreagation etc 
+\item example using a bag to square a range of numbers and sum them.
+\begin{itemize}
+    \item import dask.bag as db 
+    \item b=db.from sequence(range(5)) (these are the numbers one to 4)
+    \item c=b.map(square)
+    \item c.compute()  (this ellementwise applies the function square to each ellement in the range )
+    \item c.sum().compute() (this computes the sum of those squares)
+\end{itemize}
+\item note that nothingn is done until the compute() method is called
+\item bags are pretty primitive 
+\item but they are really good for pre-processing 
+\item then after things are preprocessed you move on to more high level computation
+\subsection{dask bags vs spark rdds}
+\item both parition data across multiple machines 
+\item they are both imuteable (that is once the bag is instanciated it can not be modfied that is a very importat feature of dask)
+\item rdds have types 
+\item bags are untyped they can have elements of any type (this can be  good or bad depending on waht you are trying to do )
+\subsection{common work flow}
+\item have raw data that does not naturally go to a data frame 
+\item import the data put it in a bag, and do some data cleaning 
+\item then once the data is in a state where it is cleaner put it in a dataframe 
+\item \textbf{the sooner you reduce the size of your data the better}
+\item this opens up some space for creativity
+\item a major bottle neck to efficency is sending data between machines, so the ealirest you can get rid of as much data as possibel the better
+\item as going through the lab thing what are the absolute min number of things i need to get what i need done, and then how can i most quickly get rid of everything else most often that is about using maps and filters in python and appplying those to bags
+\item however note that you do not want to do everything with bags (preforming operations on bags is really slow)
+\item  because bags make less assumptions than spark rdds they can not assume as much . 
+\subsection{slido bag question}
+\item have a large collection of data files to load into a dask bak which of these is the most efficent 
+\begin{itemize}
+    \item $\text{db.from\_sequence([load(f) for f in files])}$
+    \item $\text{db.from\_sequence(files).map(load)}$
+    \item both are the same
+\end{itemize}
+\subsection{bag folding vs grouping}
+\item try to avooid using group by 
+\begin{itemize}
+    \item 
+\end{itemize}
+\item instead us bag fold by 
+\begin{itemize}
+    \item this is better because it does the aggreagtion within each partion and then combines them, (so same thing as combiners)
+    \item here these have to be binary opperations
+    \item 
+\end{itemize}
+\subsection{data frames}
+\item they wrok just like ou would expcet simialr to spark data frames 
+\item outside of addding how the data frames are loaded and putting a .compute()
+\item \textbf{repartioning data frame in spark is important for lab 3 part 2}
+\item dask is not good at managging partions, so think carefully about how your data is partioned so think careuflly about how data is partioned when settigng up yourr data graph
+\item dask will preserve the partion structre for taht type os structre, so some times the partions will not be well partioned which will cause ket skew
+\item i got kind of distrcted back to paying attention 
+
+\section{arrays}
+\subsection{arrays}
+\item dask arrays work like numpy arrays 
+\item parallelism is not limited to rows  (can define chunks to each dimension)
+\item large arrasy are assmebled implicity for many small arrays 
+\item most numpy operations carry over fine 
+\item these are more of less a data structre that has many numpy arrays 
+\subsection{chunking example}
+\item bassically you can treat chunks as numpy arrays 
+\item we kind of rushed threw it 
+\subsection{things that chunks are bad at}
+\item sorting is bad in chunks (but you can often get away with topk instead (that is if you need the top k ellements form a chunk))
+\item often that is a lot more efficent than sorting teh whole array any Wednesday
+\item it is not really good at predicting from the computation graph what the dimensions of each collection will be 
+\item operations where output size epnds on value in the data (ie not just on the computation graph ) are very tough for it. So like if you want to do $x[x>0]$ ie just the postive ellements
+\item linear algebra stuff is kind of dicey becuase it is comutationally expensive
+\section{wrap up}
+\item does dask replce spark?
+\item no it is pretty simialr just used with pyhton 
+\item it is all a function of if you enjoy it more or not 
+\end{itemize}
+\end{document}
