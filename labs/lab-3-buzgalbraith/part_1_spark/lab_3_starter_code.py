@@ -46,7 +46,9 @@ def main(spark, userID):
     query.show()
 
     #####--------------YOUR CODE STARTS HERE--------------#####
-
+    boats = spark.read.csv('boats.txt', schema='bid INT, bname STRING, color STRING')
+    print("proper boots schema is ")
+    boats.printSchema()
     #make sure to load reserves.json, artist_term.csv, and tracks.csv
     #For the CSVs, make sure to specify a schema!
 
