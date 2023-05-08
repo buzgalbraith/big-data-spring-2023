@@ -1,0 +1,65 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{week 2 reading relational databases}
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+    \item 
+
+\item \href{https://brightspace.nyu.edu/d2l/common/dialogs/quickLink/quickLink.d2l?ou=261985&type=coursefile&fileId=ch2.pdf}{Hector Garcia-Molina, Jeffrey D Ullman, and Jennifer Widom. Database systems: the complete book - Chapter 2. Pearson Education, 2009.}
+\item i am going to keep this kind of high level 
+\section*{overview of data models}
+\item a Database model has three parts 
+\begin{itemize}
+    \item structure of the data that is conceptually how is the data organized 
+    \item operations on the data ie a limited set of things that can be done to the data (searching or modification) the limitations of this data allow the system to be easy to work with but still fast 
+    \item constraints on the data, we only allow the data to be format in a certain way or take on certain values 
+\end{itemize}
+\item the two most important data modes today are the relational and semi-structured model
+\subsection*{the semi structured  model}
+\item semi structured data resembles trees or graphs rater than tables
+\item the most common semi structured model is XML
+\item the data structure are tags that describe the data. 
+\item operations in semi structured data usually involve following paths down a tree or graph 
+\item constraints in this model are about the types of data that can be associated with a certain tag
+\item this model has a lot more freedom than the relational model 
+\item however the speed of the relational model and the easy of SQL make it preferable in most cases
+\section*{the relational mode }
+\item the relational model lest us represent data as two dimensional tables called \textcolor{red}{relations} where each row represents and individual and each col represents a dimension
+\item the columns of a table are named by  \textcolor{red}{attributes} ie the col names
+\item the \textcolor{red}{schema} is called a has the name of the relation and the set of attributes of the form table($A_1$ ... $A_d$)
+\item attributes are a set not a list (that is there are no repeated and order does not matter )
+\item \textcolor{red}{Database} in the relational Database model a database is one more relations
+\item the schema of a database is called a database schema 
+\item each row of a database is called a tuple the elements in a tuple must be ordered
+\item each feature needs to have an associated fixed data type such as STR 
+\item within tuple order does not matter 
+\item a set of tuples for any schema is called an instance these instances can be updated as new data is added 
+\item a relations \textcolor{red}{key} is a set of attributes for which no two tuples (ie rows) can have the same value for all attributes in key 
+\section*{defining a schema in sql }
+\item sql is used for database manipulation 
+\item sql has two attributes 
+\begin{enumerate}
+    \item the data definition sub language for declaring schema 
+    \item the data manipulation sub language for querying and  modification of a database 
+\end{enumerate}
+\item sql has three types of relations 
+\begin{enumerate}
+    \item sorted relations which are called tables, these are what we normally deal with 
+    \item views which are relations defined by computation and are not stored after seen 
+    \item temporary tables which are constructed by SQL as intermediate steps in computation but not stored. 
+\end{enumerate}
+\item  the types within sql are char, string, int, date, float, bool
+\item tables are declared like this $\text{CREATE TABLE name(title, char(100), year int, length int)} $
+
+\end{itemize}
+
+\end{document}
