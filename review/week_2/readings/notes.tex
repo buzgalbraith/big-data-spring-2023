@@ -59,7 +59,27 @@
 \end{enumerate}
 \item  the types within sql are char, string, int, date, float, bool
 \item tables are declared like this $\text{CREATE TABLE name(title, char(100), year int, length int)} $
-
+\item can add attributes to a table with alter table add or alter table drop 
+\item can make a key with either PRIMARY KEY or UNIQUE 
+\section*{algebraic query language}
+\item relational algebra is a very old school querying language
+\item what is nice about relational algebra is that by limiting what can be done the compiler is able to construct highly efficient code 
+and there is high ease of coding 
+\item four classes of relations
+\begin{enumerate}
+    \item set operations union, intersection and difference on relations
+    \item operations that remove some part of a relation selection eliminates some rows, projection eliminates some columns
+    \item join operations (including cartesian product) which combine two relations
+    \item renaming which changes the tuple schema but doe not effect its tuples
+\end{enumerate}
+\item set operations work as you would assume, that is more or less on a row by row basis
+\item on the types of joins
+\begin{enumerate}
+    \item the cartesian product between relation A and B is defined as $A\times B$ it is every combination of the rows in the two tables
+    \item natural join, pair tuples that are matching on some key 
+    \item theta join pair tuples matching on a set of keys
+\end{enumerate}
+\item we can combine our algebraic operations to have complex queries 
 \end{itemize}
 
 \end{document}

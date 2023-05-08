@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{MapReduce: A major step backwards}
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+    \item the authors are happy that map reduce has people talking about DBSM, but also has the following gripes
+    \begin{enumerate}
+        \item it is a step backwards in the paradigm of large scale data intensive applications
+        \item it is a bad implementation of the code 
+        \item it is nt novel and most of the techniques are 25 years old
+        \item it is missing key features of modern DBMS 
+        \item it is incompatible with DBSM tools
+    \end{enumerate}
+    \subsection*{a step backwards}
+    \item the data base community has learned the following over the past 40 (now like 60) years 
+    \begin{enumerate}
+        \item schemas are good
+        \item the schema can not be modified by the application
+        \item high level access languages are good (that is SQL is faster and easier than lower level languages like C++ when working with data )
+    \end{enumerate}
+    \item map reduce does not have schemas so there is now way to ensure that the data is correct or constituent so database systems can break 
+    \item as schemas are not kept a programer must find the schema for there data by inspection as they work. this is dangerous
+    \item during the 1960's there was a debate between the relational model where (you use a querying language for database access) abd the codasyl view where you write an algorithm each time 
+    \item the results of this debate are clear, and map reduce is on the low level side so that is bad and tedious 
+    \item by working with key value pairs a map reduce function is in effect acknowledging the presence of a key and attribute and thus could be put in  schemas
+    \subsection*{map reduce is a poor implementation}
+    \item modern DBSMSs have the ability to build indices which while not useful for all problems are much faster thn brute force when they work map reduce just uses brute force
+    \item  map reduce also has issues with skew and data interchange
+    \item \textcolor{red}{skew (or key skew)} occurs during the map phase of map reduce when there is a wide variance in the distribution of records with the same keys. this causes some reduce calls to take much longer than others, meaning that the program run time ends up being held back by the slowest reduce instance (there are ways around this that map reduce could use )
+    \item in map reduce each of the N map workers produce M output files where m is the number of partitions so that is overall n*M files which is a lot. 
+    \item then at the reduce phase each of the M reducers needs to read N files, this means there is a lot of comunication and when two reducers try to read form the same mapper at the same time things slow down a lot 
+\subsection*{map reduce is not novel}
+\item this is just history not super relevent 
+\subsection*{map reduce is missing features}
+\item missing bulk loaders that can transform input data files into a desired format adn load them into a DBMS 
+\item missing indexing 
+\item missing transactions (that is blocks of queries )
+\item missing updates to change the data in the database 
+\item missing integrity constraints 
+\item missing views (ie temporary tables that are not stored but used for computation and not saved to modified the data)
+\subsection*{map reduce is incompatible with DBMS tools}
+\item a modern DBSM can use all the following
+\begin{enumerate}
+    \item report writers to make visualizations 
+    \item Business intelligence tools - to allow for ad-goc queries from large data warehouses
+    \item data mining tools to allow users to discover structure in large datasets 
+    \item replication tools to allow users to replicate data from another DBSM
+    \item database design tools to help with database construction 
+\end{enumerate}
+\item the lack of these tools makes map reduce hard to use for an end to end task 
+\end{itemize}
+\end{document}
