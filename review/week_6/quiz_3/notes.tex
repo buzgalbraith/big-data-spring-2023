@@ -1,0 +1,32 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{title }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\subsection*{q1}
+\item \textcolor{blue}{If no caching is involved, wide dependencies are just as fast as narrow dependencies }
+\item this if false, regardless of if we are caching (ie) saving data to memory a wide dependencie has to use data from multiple paritions so it will have latency 
+\subsection*{question 3}
+\item \textcolor{blue}{An RDD can depend on multiple parent and be reused by multiple descendents}
+\item true 
+\item \textcolor{blue}{The Dremel system was designed to efficiently process subsets of attributes over all records in a dataset.}
+\item yep that is the point to look at cols not rows
+\item \textcolor{red}{If a numerical column A has been compressed with run-length encoding, it must be decompressed to compute the average mean(A).}
+\item run length encoding maps a vector to each of its unique values and the number of times they appeard so false 
+\item descibe the roles of paritions in spark RDD's what do they do how do they effect disrivuted computing
+\item paritions are the amount of data that a worker node in RDD needs to work with 
+\item we want the data in that parition to be as close as possible to the block the worker node is on 
+\item raising the number of paritions beyond the number of workers means that after finishing one run, a worker will have to go back and do another (this increses comuncaiton costs) 
+\item lowering the value of partions bellow the number of workers means that some worers are dealing with a lot of data while others are idle
+\item 
+\end{itemize}
+\end{document}

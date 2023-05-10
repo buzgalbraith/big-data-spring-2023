@@ -34,6 +34,46 @@ and Task Scheduling}
 \item tasks are automic unfits of work that can be run by a single worker
 \item an argument may be either a key present in the dask, a literal, another task,, or a list of arguments
 \subsection*{dask arrays}
+\item the dask array submodule uses dask graphs to crete a numpy like libary that uses all cores and works on datasets not fully in memoery 
+\item dask doe sthis in ga genreal way 
+\subsection*{blocking algorithms}
+\item blocked algorithms compute a large result with may small computations, 
+\item dask is built on blocked algorirms that is breaking operations into many small chunks 
+\item can execute all parts of a graph with the .compute method 
+\subsection*{array metadata }
+\item dask array objects have the following information
+\begin{enumerate}
+    \item a dask graph 
+    \item infomration aout shape and chunk shape 
+    \item a name 
+    \item a data tpye 
+\end{enumerate}
+\item a dask array needs to know the size of all internal chunks which can be ragged
+\item can slice dask arrays by chunks 
+\subsection*{capatbilties and limitations}
+\item dask works on most numpy functions, but does not work with functions whose output shape can not be determined head of time like where statments 
+\subsection*{dynamic task scheduling}
+\item dask has dynamic task scheduling
+\item more or less when a worker completes a task, the runtime state is updated, and a new task is chosed from among the set of ready to run tasks 
+\item dask does not push intermeidate results to disk like map reduce does
+\item they use lifo task execution
+\item user can also modify the scheudler for there task if they so desire 
+\item there are also numerous scheudlers including single machine, multi thread multi process and distributed 
+\item then they talk about some benchmarking 
+\section*{other collections}
+\item the dask libary containes parallel collections other than dask.array including dask.bag and dask.dataframe 
+\subsection*{bag}
+\item a bag is an unorderd colleciton with repeates. 
+\item is really good for initial data cleaning because it uses proefmance form other well estbalished tools and adds pararllism 
+
+\subsection*{data frame}
+\item the dask data frame module implements a large datafrmame out of many pandas datafames. 
+\item the interface is bassed off of pandas
+\item daa frames are powerfull but can not achive the same parallel preformance as arrays or bags 
+\item data frames can efficently do computation on partioned data sets as well as allong axis if they are in the same block 
+\item dask data frames are helpfull as they let users easily acess datasets that are larger than memory using the pandas interface
+\subsection*{dask for general computation}
+\item daks can work well with sopisticaed parallel algorirhsm on multi core machines 
 \item 
 \end{itemize}
 \end{document}

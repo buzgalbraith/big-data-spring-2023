@@ -1,0 +1,177 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{lecture 7: Dask }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{review of the story so far}
+\begin{itemize}
+\item started at file systems 
+\begin{itemize}
+    \item they are unstructured collections of files 
+    \item there are many custom ways to store data 
+    \item very flexible 
+    \item there is no built in parallelism 
+\end{itemize}
+\item relational data bases 
+\begin{itemize}
+    \item restrict the structure of data to relations 
+    \item has a standard interface (SQL)
+    \item somewhat flexible
+    \item not easy to parallelize 
+\end{itemize}
+
+\item map reduce and HDFS
+\begin{itemize}
+    \item data is less structured than RDBMS 
+    \item restrict coding to map and reduce functions 
+    \item very parallel 
+\end{itemize}
+
+
+\item spark
+\begin{itemize}
+    \item structured data like RDBMS
+    \item distributed storage (HDFS)
+    \item standard-ish interface (sql and spark-API)
+    \item very parallel
+\end{itemize}
+
+\subsection*{spark is good}
+\item spark integrates well with java based tools like hadoop
+\item spark is grate at working with data frames and SQL like data processing 
+\item it is 10 years old meaning \textcolor{red}{the implementation is mature and stable}
+\item after RDBMS and SQl it is likely the most used software for data analysis
+\subsection*{what is spark not good at}
+\item data that does not fit nearly into an RDD or data frame model 
+\item it is not super well suited for working with the python SciPy stack 
+\item modern machine learning is all done using SciPY 
+\item spark is only cluster based what if the data you are working with is to big to hold in RAM but don't need a cluster? 
+\section*{Dask}
+\item Dask is python based distributed computation 
+\item has a lot in common with spark 
+\item has computation graphs similar to sparks linage graphs 
+\item has delayed computation much like RDD and data frames in spark 
+\item collection based interface also has spark like data frames 
+\item some key differences between spark and dask are that 
+\begin{enumerate}
+    \item dask prioritizes array based Numpy like computation 
+    \item it is designed to support single machine out of core (ie parallel or multi thread) use
+\end{enumerate}
+\subsection*{delayed computation and task graphs}
+\item dask builds complex computation by composing deferred  computation into task graphs 
+\item \includegraphics*[width=10cm]{images/Screenshot Capture - 2023-05-10 - 17-55-10.png}
+\item the left shows how a delayed computation square function can be defined 
+\item the right shows how we can pass that computation to a delayed sum function and look at it in parallel
+\section*{collections in dask}
+\item bags 
+\begin{itemize}
+    \item distributed collections of arbitrary structured data. similar to an RDD in spark 
+\end{itemize}
+\item data frames distributed collection of structured tabular data, most similar to a spark data frame (but built on pandas instead of using RDDs)
+\item arrays: n dimensional distributed numpy arrays. 
+\subsection*{collection interface bags}
+\item bags are broadly similar to spark RDDs. think of them kinda like a list in python 
+\item they are un ordered collections of generic python objects. portioned into subsets 
+\item they implement basic operations like map filter join sum etc
+\item a good choice for initial preprocessing and structured objects
+\item if your data is tabular or array based this is likely not a good data structure 
+\subsection*{dask bags vs spark RDDs}
+\item  both  partition a collection of objects across multiple machines
+\item both are immutable
+\item all elements of an rdd must be of the same type 
+\item bags are untyped so the contents can be mixed types (but this should be avoided as it slows down processing)
+\item a common dask work flow is raw data $\rightarrow$ bags $\rightarrow$ data frames $\rightarrow$ deeper analysis
+\item the earlier you reduce the size of your data the better, as that is less data moving through the system 
+\item we prefer maps and filters on bags over data frame manipulations when simplifying data 
+\item but in general bag operations are slower than those on data frames, since because bags have so few restrictions it is hard to optimize code for them 
+\subsection*{constructing collections}
+\item there are many ways to construct a collection in dask 
+\item db.from\_sequence.([logad(f) for f in files ]). all files are loaded first in vanilla python lists and then put in a bag 
+\item db.from\_sequence(files).map(load) file names are distributed into a bag, the load function is then applied to each in parallel
+\item so the second is faster 
+\item in general try to load data using collections when possible 
+\subsection*{bag folding vs grouping }
+\item try to avoid using group by on bags, this requires inter worker communications which is slow. there are wide dependencies with this method 
+\item use fold or fold by if possible
+\item this method has similar benefits to a combiner in map reduce, that is it does local aggregation fit to reduce data shuffling 
+\item fold by required a key function and binary operation 
+\item a key function maps elements to a key (think of this as the group)
+\item a binary operation reduces within the group (think of this as group aggregation)
+\item a binop and reducer in map reduce are not the same however 
+\item bag binop only sees two values at a time not a list like in map reduce 
+\item output of a binop must match the input type unlike in map reduce 
+\item this can become tricky if your bag elements are structured
+\subsection*{collection interface data frames}
+\item they are similar to spark dataframes (they use pandas internally through)
+\item parallelism ie partitioning is over rows in dask data frames not cols 
+\item these are a good choice for data that can naturally be split into different files. like multiple log records
+\item managing partitions in dask is important. 
+\item your data may change through the computation graph if this is the case, you may end up with nearly empty partitions
+\item try to keep your partitions are full and balanced as possible
+\item dask makes you work harder than spark to get it working well
+\subsection*{collections interface arrays }
+\item dask arrays work like those in numpy 
+\item parallelism is not limited to rows, can define chunks alone each dimension 
+\item large arrays assembled implicitly from smaller arrays 
+\item most numpy operations work automatically
+\subsection*{where chunks fail}
+\item not good for sorting between chunks (but can sometimes just take the top k elements from each chunk and use those )
+\item operations where the output size changes like masking operations are hard 
+\item linear algebra operations can be tough 
+
+
+\subsection*{how spark is commonly used }
+\item have 10 models for audio segmentation to compare 
+\item have 2000 audio recordings in a dataset, that is 20,000 model outputs
+\item the model outputs are a sequence of time intervals 
+\item  Model evaluator compares reference annotation to estimate annotation for one track, and produces
+a dictionary of scores along different metrics. Takes a few seconds to run for each track.
+\item What I want: a DataFrame containing:
+model id, recording id, [scores for each metric]
+\subsection*{solution}
+\item store model output as separate files on disk 
+\item creat a delayed function to map filenames to scores (calls the evaluator)
+\item crate a bag from the delayed function
+\item convert the bag to a data frame and save it 
+\subsection*{why is this better}
+\item  all computation is done using basic python functions (ewe don need to re-write our functions for dask)
+\item the problem it's self is parallel, so there is a lot of mapping but little reducing that needs to be done 
+\item we like this over spark because we dont have to change any of our data structures or code to fit it 
+
+
+\subsection*{working with large numerical data}
+\item csv and parquet files are not a good option here. (like a single really big matrix)
+\item collections of files npy or npz files can work well
+\item Hierarchical data format (HD5) could work well as well 
+\subsection*{HD5}
+\item basically a new file system within a file (Hierarchical) Directory structures
+\subsection*{does dask replace spark}
+\item it kind of depends on use case 
+\item pros for dask 
+\begin{itemize}
+    \item works well with SciPY
+    \item works well with dense multi dimensional data 
+    \item works well with custom algorithms and gpus
+\end{itemize}
+\item pros for spark
+\begin{itemize}
+    \item more stable 
+    \item more high level, you do not need to think as much about computation graphs or partitions
+    \item faster for data frame analysis
+    \item better support for large graph data
+\end{itemize}
+\subsection*{HPC}
+\item hpc greene is less restrictive than dataproc
+\item 
+
+
+
+\end{itemize}
+\end{document}

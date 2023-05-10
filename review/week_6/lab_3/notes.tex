@@ -1,0 +1,65 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{quiz 3 }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\section*{part 1}
+\subsection*{question 1 }
+\item how would you wtite the following in spark sql as opposed to using the object interface? 
+sailors.filter(sailors.age > 40).select(sailors.sid, sailors.sname, sailors.age)
+\item spark.sql('SELECT sid, sname, age from sailors where age > 40; ')
+\subsection*{question 2 }
+\item \textcolor{blue}{How would you express the following using the object interface instead of SQL? spark.sql('SELECT sid, COUNT(bid) from reserves WHERE bid != 101 GROUP BY sid')}
+\item $query-2=reserves.where("bid != 101").groupBy("sid").count()$ 
+\section*{question 3}
+\item \textcolor{blue}{question}:  Using a single SQL query, how many distinct boats did each sailor reserve? The resulting DataFrame should include the sailor's id, name, and the count of distinct boats. (Hint: you may need to use first(...) aggregation function on some columns.) Provide both your query and the resulting DataFrame in your response to this question.
+\item query-3=spark.sql("select  sailors.sid, first(sailors.sname) as name, count(distinct reserves.bid) from sailors Left JOIN reserves ON sailors.sid=reserves.sid group by sailors.sid") 
+\subsection*{question 4}
+\item \textcolor{blue}{question }: Implement a query using Spark transformations which finds for each artist term, compute the median year of release, maximum track duration, and the total number of artists for that term (by ID). What are the results for the ten terms with the shortest average track durations? Include both your query code and resulting DataFrame in your response.
+\item  querry-4=artist-term.join(tracks,artist-term["artistID"] == tracks["artistID"],"right" ).groupby("term").agg(
+                                            F.expr('percentile-approx(year, 0.5)').alias('median year'),
+                                             count(artist-term["artistID"]).alias("count\ id "), max("duration").alias("max-duration") ).orderBy(mean(tracks["duration"])).limit(10)
+
+\subsection*{question 5}
+\textcolor{blue}{question}: Question 5: Create a query using Spark transformations that finds the number of distinct tracks associated (through artistID) to each term. Modify this query to return only the top 10 most popular terms, and again for the bottom 10. Include each query and the tables for the top 10 most popular terms and the 10 least popular terms in your response.
+\item querry\_5\_2=artist\_term.join(tracks,artist\_term["artistID"] == tracks["artistID"],"right" ).groupby("term").agg( countDistinct(artist\_term["artistID"]).alias("number distinct artists")).orderBy(countDistinct(artist\_term["artistID"]).desc()).limit(10) 
+\item for top 10 
+    
+\section*{part 2}
+\item \href{https://sparkbyexamples.com/spark/spark-partitioning-understanding/}{stuff on partitioing in spark}
+\item \href{https://understandingbigdata.com/hdfs-what-is-replication-factor-in-hdfs-and-can-we-change-it/}{replication factor in spark}
+
+
+
+\item \textcolor{red}{description}:In this part of the assignment, you will be comparing the speed of Spark queries against DataFrames backed by either CSV or Parquet file stores, and optimizing the storage to speed up queries.
+\subsection*{big spender}
+\item \textcolor{red}{task }: This function returns a uncomputed dataframe that
+will contains users with at least 100 orders but
+do not yet have a rewards card.
+\item \textcolor{purple}{basic querry on csv }Orders.filter(orders.rewards === False).filter(orders.orders $>=$ 100).select(firstname, lastname)
+\item i think it is a good idea to partion by orders, reward
+\item then sort by first name and last name 
+\item there is no reaosn to increase replicaiton factor
+\subsection*{sum orders}
+\item \textcolor{red}{task }: will compute the total orders grouped by zipcode
+
+\item \textcolor{purple}{basic querry on csv }Orders.groupby(orders.zipcode).agg(count(orders))
+\item may want to sort by zipcode  
+\item there is no reason to sort on orders sine we are just summing
+\item then repartion to a good number
+\item do not want to partion by zip code col since there could be many zipcodes and this could result in key skew if some zipcodes are more populos
+\item we are grouping by zipcodes which i think by and large are small so raising the replication factor is not important 
+
+\end{itemize}
+
+
+\end{document}
