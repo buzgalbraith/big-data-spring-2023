@@ -1,0 +1,203 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{lecture 4: HDFS }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\item \includegraphics*[width=10cm]{images/Screenshot 2023-05-09 at 3.49.43 PM.png}
+\item suppose we have the above task we are running on one machine 
+\item our steps are as follows
+\begin{enumerate}
+    \item run mapper on each input records
+    \item collect the results for each intermediate key
+    \item run reducer on each intermediate key
+\end{enumerate}
+\item how can we make this work on multiple machines in parallel?
+\subsection*{map reduce details}
+\item how is data shared over the cluster? 
+\item how do we handel node failure?
+\item how can we optimize for map reduce as a framework?
+\subsection*{start simple}
+\item imagine that we were building map reduce from the ground up 
+\item in map reduce the head node sends mapper and reducer code to each worker as well as a block of data to work with 
+\item worker then send output back to head node 
+\item the mappers produce intermediate results 
+\item the reducers produce final results
+\item this will work but there are some issues 
+\begin{enumerate}
+    \item each job moves hte entire data set over the network which is slow
+    \item this is what we call a \textcolor{red}{failure of locality} that is though it would be more efficient to store data locally we are transferring all of it 
+\end{enumerate}
+\subsection*{localize all the data}
+\item what if all data is replicated on all worker nodes? 
+\item the head node would send the mapper and reduce code to each worker as well as the id of a data block where the data it will work with is stores in system memory 
+\item workers then send output back to head 
+\item this will work but it is expensive \textcolor{red}{each worker needs a large amount of storage to hold all data, while most workers do not use most data}
+\subsection*{design considerations}
+\item communication costs (it takes a lot of time to move data over the network)
+\item fault tolerance when we have a lot of machines things fails
+\item Redundancy vs communication (that is if we store more redundant information it is more likely to be near where it is used, but we need more storage)
+\item granularity of access that is can we let users write and read all files
+\item locality how much data do we store on each host machine 
+\item common access patterns in map reduce programs are small (like map reduce has two simple functions) but data is large in these use cases
+\section*{the hadoop distributed file system HDFS}
+\item \textcolor{red}{HDFS} is the storage component of hadoop (used for more than just map reduce)
+\item provides distributed redundant storage
+\item it is optimized for \textcolor{red}{single write} (ie we only write to a file once ) \textcolor{blue}{multi read} (we can read that file many times ) patterns
+\subsection*{networked filesystem (NFS) VS HDFS}
+\item NFS stores data on one machine but provide access from multiple
+\item distributed file system spear each file across multiple machines 
+\item if a disk fails you need to take hte machine offline. so fault tolerance is a at the level of the machine not the disk (so having more machines with redundent info means more fault tolerance)
+\item so this means we can work around machine failure in our network not just disk failure 
+\section*{using HDFS}
+\item HDFS is a file system but we use it differently 
+\item HDFS sits on top of the operating systems built in file system unix on most host machines
+\item think of it kinda like an application that stores files for us, like good drive or what ever 
+\item access data using the \textcolor{red}{hadoop fs -command} command
+\item so if you are working on dataproc at nyu, you have a host machine there that will store your files and work like a normal file system and can access HDFS
+\subsection*{two types of nodes}
+\item we have the name node and data node 
+\subsection*{name node}
+\item clients talk to the name node to locate data (think of it like a file system) 
+\item name node knows what files map to what blocks, and what blocks map to what data nodes.
+\item so if a client asks for information from some file the data node knows where the file is, what data nodes map to it and thus how to get that info 
+\item ot also keeps a journal of transactions, which is backed up remotely for durability (ie not everything is lost if the name node goes down)
+\subsection*{data node}
+\item stores each block as two files in the local file system
+\begin{enumerate}
+    \item a data block  of variable size that has the data  
+    \item and a file with meta data. this meta data includes a checksum as well as a generation stamp
+\end{enumerate}
+\item a checksum is used to detect storage errors, each piece of data is associated with a checksum so if the checksum is not correct for a data node it is likely that node has the wrong data 
+\item a generation stamp is a piece of metadata used to check for updates 
+\subsection*{example writing to HDFS}
+\item here is a diagram \includegraphics*[width=10cm]{images/Screenshot 2023-05-09 at 5.00.13 PM.png}
+\begin{enumerate}
+    \item the client wants to add a block, the node name responds by giving a list of data nodes that could store the block 
+    \item client sends block of data to data node 1 
+    \item data node 1 stores the data, sends acknowledgment to the user that the data has been received and sends the block to data node 2 
+    \item data node 2 stores the data, sends acknowledgment to the user that the data has been received and sends the block to data node 3
+    \item data node 3 stores the data, and  acknowledgment to the user that the data has been received
+    \item  the add is done, the file is closed and the user tells the name node that the write is complete, the name node 
+\end{enumerate}
+\subsection*{name and data node communication}
+\item data nodes send a periodic signal to the name node \textcolor{red}{called a heart beat}
+\item the name node always knowns which data nodes are alive, name node infers a data node is dead if it does not get a heart beat from a data node within a certain amount of time 
+\item name nodes may respond with update messages, ie after each heart beat a name node can give a data node a command like replicate this block from this data node 
+\subsection*{recovering from failure: checkpoints}
+\item checkpoints are snapshots of the current name node's state 
+\item checkpoints hold directory structure, what blocks map to what data nodes, and journal (ie list of transactions history)
+\item name node keeps all this information in it's ram so it is quickly accessible 
+\item these are created periodically to ensure the network can recover quickly from name node failures
+\item checkpoints cannot be updated only replaced 
+\subsection*{HDFS is not POSIX-compliant}
+\item \href{https://en.wikipedia.org/wiki/POSIX}{POSIX} is more or less a standard for how unix operating systems work 
+\item \textcolor{red}{updates to files are append only } (within applications a user can delete a file though )
+\item this means old data on hdfs can not be changed 
+\item this makes replication logic much more simple
+\item also means that workers can read most of the same file while another worker is writing to it 
+\item does not support all file formats like executable code
+\item POSIX is portable operating system interface that are standards  around os and file system compatibility has standard operations like read write and seek
+\item HDFS updates are \textcolor{red}{append only} can not change old data making replication a lot easier 
+
+\subsection*{why does HDFS not work like a personal computer file system?}
+\item desktop computers need to support all kinds of users, like many small configuration files or files that update frequently like a browser cache 
+\item hdfs is for large data analysis jobs which have different needs, generally in this context we have a few large files, that are frequently read, and infrequently updated
+\item so hdfs restricts these functionalities to optimize for what it is actually trying to do 
+\subsection*{division of responsibilities}
+\item the name node does not store data 
+\item the data node does not store meta data
+\item name node failure is really bad 
+\item data node failure can be tolerated up to a point (this varies depending on how much our data is replicated)
+\item \textbf{slido question}: Why do you think the HDFS designers
+parallelized storage at the level of blocks
+instead of files?
+\item files can be to large to store all in one place and each data node only needs a portion of each file. 
+\item further having a uniform max block size as opposed to files of different lengths makes allocating data across the cluster and making replications of the data easier 
+
+\section*{HDFS and map reduce}
+\subsection*{a typical map reduce work flow}
+\begin{enumerate}
+    \item upload data from your unix file system to HDFS done with HDFS -put $\text{file}_\text{name}$ 
+    \item next we run the map reduce program 
+    \begin{itemize}
+        \item each mapper get a portion of $\text{file}_\text{name}$ 
+        \item each mapper produces intermediate outputs that are saved HDFS
+        \item shuffle stage collects intermediate outs to give to reducers
+        \item reducers operate on intermediate keys to produce final output as multiple blocks (saved in HDFS)
+    \end{itemize}
+    \item we get the output from HDFS using command hadoop fs -getmerge $\text{file}_\text{name}$ (this is required because the outputs from reducers are stored in multiple blocks so we are merging them back to one file )
+\end{enumerate}
+\subsection*{how does hdsfs help map reduce}
+\item hdfs shares blocks over data nodes 
+\item map reduce shares jobs over compute nodes
+\item \textcolor{red}{in big data applications it is cheaper to organize our computation around where we put our data, instead of organize our data around our computation}
+\item so for instance if we were going to do a map reduce call and were considering sorting our data to make computation easier it is likely that the cost of moving all the data after it is sorted and before the program is run would outweigh the computational gains from sorting
+\subsection*{job scheduling and input splits}
+\item most map reduce programs run over 1 large file (broken into blocks in the HDFS file system )
+\item map map reduce devices divides the input data into splits. (where a split is a unit of work assigned to each mapper)
+\item each split maps onto one or more block in HDFS
+\item so we try to assign wok such that work for a split is done on a machine within its blocks. 
+\item HDFS exposes block layout to the application layer to make this possible
+\item so to clarify what happens 
+\begin{enumerate}
+    \item user uploads data to HDFS, HDFS splits data into blocks 
+    \item the user gets the location of these blocks from the name node, and calls the map reduce function 
+    \item the map reduce function breaks the input data into splits. 
+    \item the mapper nodes in map reduce must then get all the data from there split to run, so it is best if try to map splits to blocks that are stored in that map workers file system 
+\end{enumerate}
+\item \textbf{slido} what do you think will happen if a split is spread across multiple HDFS blocks? 
+\item the program will be slow because there needs to be communication
+\subsection*{splits and blocks}
+\item \textcolor{yellow}{a split } is one logical division of the input data  for a map process. each split typically has multiple rows
+\item the machine running the mapper must have access to the entire split so if some of the data for its split is not stored in that mappers file system data blocks have to move 
+\item by default \textcolor{red}{split size = block size} but some fragmentation will happen as the input file does not always break evenly into splits of that block size
+\subsection*{where should the program execute}
+\item HDFS machines are kept in wracks. it is faster for a program to communicate with other machines within the same wrack
+\item \textcolor{green}{best case} we run the program on a node that stores the block data we need 
+\item \textcolor{yellow}{middle case}  we execute the program on a different node in the same rack. this is okay since within wrack communication is relatively fast
+\item \textcolor{red}{worst case} run the program on a node in a different wrack than where the block is held. between wrack communication is very slow
+\subsection*{replication factors}
+\item replicating block data on multiple nodes makes scheduling jobs more easy since it is more likely that a worker with our data will be available 
+\item HDFS lets you set the replication factor for each file. (it is not free however since it takes us more storage space)
+\item typical replication factors is 3, keep 2 replicas in the same rack and 1 replica in a different wrack 
+\item this set up means that pur data is protected against both node and wrack failure 
+\section*{CAP and HDFS}
+\subsection*{the CAP theorem for distributed storage}
+\item \textcolor{red}{the CAP theorem } says a distributed file system can at most have two of the following
+\begin{enumerate}
+    \item \textcolor{blue}{Consistency} ie reading any file always produces the most recent value of that file 
+    \item \textcolor{orange}{Availability} ie request can not be ignored (the system can not go down)
+    \item \textcolor{purple}{Partition-tolerance} ie the system maintains correctness during network failure 
+\end{enumerate}
+\subsection*{assume that we could have all three CAP traits}
+\item suppose we have to machines that are both initialized with the value $x=0$
+\item the network then fails 
+\item a user then updates the value of x in machine 2 to $x=1$
+\item a user than reads the value of x from machine 2
+\item what happens
+\item either the data is wrong ie the system does not have Consistency
+\item the system does not allow for the update of x to be made while down in which case Availability is lost
+\item or the system lets $x=1$ get updated and then once the system is back up sets the value of $x=1$ in machine 1, but in this case we do not have Partition tolerance
+\item \item so no matter what we violate one 
+\subsection*{slido}
+\item textbf{question} which cap property is lost in HDFS and why 
+\item HDFS has Consistency, there is a centralized name node that always has a consistent view of the file system data cna be appended but not modified
+\item it does not have Availability if our name node goes out of line the system shuts down 
+\item Partition-tolerance kind of depends on how the specific HDFS network is set up and the replication factors
+\subsection*{hdfs summary}
+\item files divide into blocks and are replicated across the cluster
+\item checksums are replicated within each block 
+\item name nodes allocate blocks and direct clients 
+\item blocks are append only which means they are well optimized from write once read many tasks 
+\item next we move onto Spark and spark-sql
+\end{itemize}
+\end{document}

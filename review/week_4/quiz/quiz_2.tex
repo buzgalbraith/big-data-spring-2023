@@ -1,0 +1,31 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{quiz 2 }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\subsection*{question 1 }
+    \item a split in map reduce can either be smaller or larger than an hdfs block 
+    \item a split in map reduce is pretty much just file size over number of mappers so it is dependent on input file size
+    \subsection*{quesiton 2}
+    \item Combiners in map-reduce improve efficiency by decreasing the number of intermediate keys prior to the reduce phase.
+    \item \textcolor{blue}{false} Combiners reduce the number of key value pairs not the number of keys 
+    \subsection*{question 3:}
+    \item the replication factor of an HDFS file can be modified after the file is created
+    \item \textcolor{blue}{true} hdfs does not care if you change the replication size it would just have to create or dellete replicated block data 
+    \item  
+    \subsection*{question 4 }
+    \item the data nodes in hdfs are responsible for file name and location data
+    \item \textcolor{blue}{false} that is what the name nodes document
+    \subsection*{question 5 }
+    \item question 5 is cursed i'm going to skip for now. it is like writing  the psudo code for a map reduce function 
+\end{itemize}
+\end{document}

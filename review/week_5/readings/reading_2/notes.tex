@@ -1,0 +1,63 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{Spark SQL: Relational Data Processing in Spark }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{abstract}
+\begin{itemize}
+\item new spark module to work with SQL 
+\item kind of bets of both worlds between spark and sql 
+\item makes a tighter integration between Relational and procedural processing through a declarative data frame api that integrates with spark code
+\section*{introduction}
+\item early cluster computing frameworks like map reduce were lowlevel newer ones are trying to work with relational interfaces 
+\item the Relational model alone is inseficent for big data applications as users may need to write custom code for more complex tasks 
+\item so in practice a mix of self writen code and declerative can be best 
+\item spark sql allows for seemless mixing of relational and procedural paradigms
+\item spark data frames can preform Relational operations on both external and sparks built in colection
+\item still keeps lazzy evaluation form RDD
+\item spark sql also adds a new optimizer called catalyst 
+\item data frame offers rich procedural and declarative integration within spar programs
+\item data frames are collections of records that can be manipulated using sparks procedural api, and can be built in spark allowing relational processing within spark programs 
+\item can use sql commands on spark sql data frames which saves time if need to do certain tasks like group by 
+\item catalyst uses trees from code optimization and generation 
+\subsection*{background and goals }
+\subsection*{spark overview}
+\item rdds are lazy. each rdd is a lgoical plan to compute a data set but spark wiats until certain output operterations are hit 
+\subsection*{goals for spark sql}
+\item support relational processing within spark (on native rdd) and external data sources
+\item provide high preformance DBMS techniques
+\item easily support varied data types 
+\item enable extensions to build off it 
+
+\section*{programming interface}
+\item spark sql is built ontop of spark
+\subsection*{data frame api}
+\item dataframes are a distributed collection of rows with a heterogneous schema 
+\item unlike rdd data frames keep track of there shcema allowing them to be more optimized
+\item spark data frames like RDD are alos lazy
+\item data frames can be viewed as an rdd of row objects so rdd methods work on data frames 
+\subsection*{data model}
+\item spark sql uses a nested data model based on hive 
+\item supports all major sql data type as well as complex data types from spark
+\item can work with abstract or even use defined data types so very flexible in what data can be models 
+\subsection*{data frame operations}
+\item users can preform relational operations on data frames using a domain specific language
+\item data frames only support pre defind functions but in doing so are able to be well optimzed for what they do
+\subsection*{data frames vs relational query languages}
+\item while on the surface data frames provide the same operations as relational query languages like sql ,they can be a lot easier to work with since they are already integrated into a full progrmaing language
+\subsection*{querying native datasets}
+\item real world pipelines often extract data from heterogneous data sources adn run a wide variety of algorthms on them 
+\item spark data fram can infer schema from rdd objects of arbitary data types and use that for sql queries 
+\subsection*{user defined functions}
+\item spark sql allows user defined functions to be written in line with the code
+\section*{catalyst optimizer}
+\item the rest of this seems to get a bit in the weeds so i am going to transition to the lecture 
+\end{itemize}
+\end{document}

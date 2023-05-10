@@ -76,6 +76,7 @@
 \item having fewer reducers than intermediate keys
 \item combiners can help but sometimes a more complex map is better 
 \item sometimes doing some other sorting stuff can reduce communication 
+\item for a combiner to work the reducer must be comunitative ie $A+B=B+A$ and asociative ie $(A+B)+C=A+B+C$
 \section*{criticism of map reduce}
 \item map reduce has criticism because it is 
 \begin{enumerate}

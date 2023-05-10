@@ -1,0 +1,37 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{Dremel: Interactive Analysis of Web-Scale Datasets }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{abstract}
+\begin{itemize}
+\item dremel is a scalable interactive, ad-hco query system for analysis of read only nested data 
+\item is fast as it combines multi level ecxeution trees with columnar data layout
+\item this scales both with data and cpus
+\subsection*{introduction }
+\item data used in science and the internet is often non relational 
+\item hence a flexible data model is essential in these domains 
+\item a lot of this data lends it's selt naturally to nested representations 
+\item dremel is a system that supports interactive analysis of very large data sets over shared clusters of commodity machiens 
+\item dremel works well with nested data and works well with map reduce
+\item the architecture of dremal uses serving tree structure used in web search 
+\item the result of the auery is asembled by aggregatigng the replies recived from lower level of trees 
+\item dremel proied a high level sql like language to express ad hoc queries 
+\item it can execute queries with out map reduce jobs 
+\item dremel is also column oriented which enables it to read less data from seconday storacges adn have chpeater compressin
+\subsection*{background }
+\item there needs to be interoperation between the query processor and ohter data manamgnet tools
+\item ie they need to be able to work togther as a combined system
+\item this reuqires a common storage later 
+\item the next step of this is a shared storage format, coloumnar storage is good for relational data but dremel helps with nested data 
+\subsection*{data model}
+\item i am going to go over the lecture and come back to this if there is time. 
+\end{itemize}
+\end{document}

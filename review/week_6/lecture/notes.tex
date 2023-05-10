@@ -1,0 +1,164 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{title }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\item the speed up from spark comes from delayed computing parallelism and caching 
+\item it is not faster at every problem but in something like gradient descent it is way faster 
+\item it is
+\section*{column oriented storage}
+\item it is all about speed (ie wall time)
+\subsection*{history of column oriented storage}
+\item idea goes back to the 80's 
+\item had a resurgence in the 200s 
+\item in the 80s it was not seen as that important because both cpu speed and storage speed were increasing 
+\item starting in the mid 2000s storage speed stagnated so to make things faster speeds up were needed
+\item transferring from disk to memory is vary slow 
+\item sequential memory reads are faster due to cache per fetching 
+\item so we want to transfer fewer bites and use predictable and contiguous memory access patters to make reading data faster 
+\subsection*{row oriented storage csv}
+\item if you had data stored in a row of text oriented way how would you go about getting the nth record, or just takes the kth column. you would have to go through each row until you find the kth value in that row since strings are of variable size
+\item rows and column are hard to predict 
+\item basically requires a full serial scan
+\subsection*{record oriented storage relational data}
+\item relational data can be logically grouped by rows 
+\item that is good if you want to process all records in a row at one time 
+\item that is also nice for appending data 
+\item it is human readable as well
+\subsection*{queries row stores}
+\item  getting a col from a row oriented database is equivlent to a loop in the best case
+\item each row is loeaeded from storage 
+\item atribute is inspected 
+\item rows that pass are sent down stram 
+\item an index can help local rows but that still involves pulling entire rows when we only want one column
+\item loading data from the disk is slow
+\section*{column oriented storage}
+\item each column is stored on its own 
+\item values in each col have a constant type 
+\item disk access patterns become much more regular 
+\item this improves locality
+\item enables compresion and vectorized processing 
+\item \includegraphics*[width=10cm]{images/Screenshot 2023-05-10 at 4.11.40 AM.png}
+\item i think the above picture shows why this works well as vectors. 
+\subsection*{speed is not everything}
+\item storage space matters too 
+\item mixed types are hard to compress 
+\item once that data is arranged in a coloumnar fashion they all have the same type 
+\item so tehy can be comressed saving space meaning that the data can also be sent and recived much more easily 
+\subsection*{compression}
+\item records have heterogenou types 
+\item a single coloumn has one type 
+\item that means there is low entropy in a coloumn so can be easily compressed 
+\item compressed data takes less space, is cheapter to load and sometimes we can compute directly on compressed data 
+\item but what compression should we use 
+\subsection*{dictionary encoding}
+\item this is where we encode each value in a coloumn with a unique key 
+\item this works well when we have a few distinct values
+\item replace string value by string identfiers thi alows the column to have uniform data with and better cahc locality
+\item so string matching can be done on the dictionary not each row (since they are stored in difrent dictionarts)
+\item \includegraphics*[width=10cm]{images/Screenshot 2023-05-10 at 4.20.28 AM.png}
+\subsection*{bit packing}
+\item integers ussualy take 4-8 btes to store (32 bits or 64 bits)
+\item bit packing squeezes small integers togther 
+\item \includegraphics*[width=10cm]{images/Screenshot 2023-05-10 at 4.22.13 AM.png}
+\item matching and comparing can be done on the compressed data 
+\item this will only work well when there are a lot of small integers
+\subsection*{run length encoding }
+\item usefull when we have long runs of constant values 
+\item we convert a seuqnce of value to tuples of the type (value , \#repeitions)
+\item sum average counts and other aggreagations can all be done on compressed values 
+\subsection*{other compressions}
+\item frame of refrence encoding 1000 ,1004 , 1005 1002 $\rightarrow 1000| 0,4,5,2$
+\item delta coding $1004, 1005,1006, \rightarrow 1004|+0, +1, +1$
+\item many others 
+\item copression can be combined
+\item the main trade of is space efficiency vs complexity of querying 
+\item \textbf{slido} You work as a data scientist for Netflix and
+need to compress a movie to stream it
+efficiently. What is the most suitable
+compression scheme? Hint: A motion
+picture consists of many successive
+frames
+\item delta encoding, maybe run length
+\subsection*{coloumn oriented storage take away}
+\item pros 
+\begin{enumerate}
+    \item can be faster if we only want a subset of atributes 
+    \item higher storage efficiency and throughput 
+    \item collecting dat of the same type allows for compression 
+\end{enumerate}
+\item cons 
+\begin{enumerate}
+    \item reconstructing full tuples from compressions can be slow 
+    \item writes and deletions an be slow 
+    \item handeling non tabular data is tricky
+\end{enumerate}
+\section{when data is not tabular}
+\subsection*{dremel and parquet }
+\subsection*{dremel}
+\item dremel is a low latency query system for read only \textcolor{yellow}{structured data}
+\item devloped at google
+\item lots of cool ideas in the paper but lets talk about data format 
+\item core ideas were quickly taken and reused in parquet 
+\subsection*{nested and structured data}
+\item not everything fits nicely in relations 
+\item varible lengths and depths are hard to deal with 
+\item record oriented storage is more natural here 
+\item how can we get all the benfits of column stores but for sturcutres data 
+\subsection*{trees}
+\item we use the hierachal data strucutre tree 
+\subsection*{example web documnets}
+\item there are required and not required tags 
+\item need a doc id 
+\item dont need links need at least 1 name and 1 language ecxeution
+\subsection*{what specs would we like to see in a system that flattens hierachical records}
+\item we want lossless representations of the hierachical records in coloumnar format
+\item it needs to be possible to recreate the heirchal record from the columnar format 
+\item the key challange is being able tp parse records unambiouously 
+\item we need to be able to keep track of the record strucutre, ie if a vllue abears in a table riwce we need to udnerstand wether ti is the same peice of data or a unque record 
+\item to make this eficent it needs to be able to hand sparse datasets 
+\item we need to be able to represnet mising fields efficently like null values 
+\subsection*{implementing records flattening with  dremel}
+\item the key idea is keeping track of rpetions of fields within a record to parse 
+\item the repretiton level  (which level repreated most recently) r 
+\item the defention level d how many optimal diles are present 
+\item the required fields same are the ame level as the partens 
+\item otpinal fields the same r level as parents d lvel incprements 
+\item then tehre are repeated fields 
+\item go back through the flattneing example i dont have the life force for this right now 
+\item dremel can easily rebuilt partial views 
+\item unsued atributes can be ignoree 
+\item but decoding the data is sequential so dremel data is hard to paralelleize
+\subsection*{after flattening}
+\item repertion adn defention cols are hgihyl compreasble 
+\item value field are a new column of hte ame type 
+\item cols broken into blocks and compressed incompedenitly 
+\section*{parquet}
+\subsection*{parquet}
+\item devloped at twitter in 2013
+\item defualt storage for spark 
+\item based on dremel flattening but without the analysis engenin or query machine 
+\subsection*{parquet format}
+\item pages for a coloumn are compressed inpendntly 
+\item small pages make it easier to read records but incur more overhead 
+\item row grops should be large nut fit into one hdfs blocks
+\subsection*{nice things about parquet}
+\item there is cross language support 
+\item allows for partial decoding ie only look at a few cols 
+\item it works well with spark and hdfs 
+\item preserved rdd dand data frmae directly 
+\subsection*{using parquet in practice with spark}
+\item colum efficnet depend on row order it larely rellies on how compressable the dataa is 
+\item data frame partions can be wrten out epeattly
+\item most frameworks we use in coding are already column oriented
+\end{itemize}
+\end{document}

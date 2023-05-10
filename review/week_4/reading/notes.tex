@@ -1,0 +1,95 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{the Hadoop distributed file system }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\item hadoop is designed to store very large datasets relaibly and to stream those data sets at high bandwith to user applications 
+\item the idea is to dsitribute storage and computation across many ervers allowing reaserouces to grow with demand and remain economical ie cheap lol
+\item was made at yahoo
+\subsection*{Introduction and related work }
+\item hadoop provides a distributed file system and a framework for computation using the map reduce paradigm 
+\item hadoop works by partitioning data and computation across many hosts and keeping in parallel close to where the data is kept 
+\item hadoop scales simply by just adding more servers
+\item components of hadoop
+\begin{enumerate}
+    \item hdfs the file system 
+    \item map reduce the frame work for distributed computation
+    \item hbase column oriented table service
+    \item pig data flow language with parallel execution 
+    \item hive data whorehouse infrastructure 
+    \item zoo keeper distributed coordination service
+    \item arvo data serialization service
+\end{enumerate}
+\item hadoop is an apache project 
+\item most of the hdfs interface is modeld after unix but some changes were made to improve preformence
+\item HDFS stores meta data on a dedicated server called the \textcolor{blue}{name node}
+\item all servers are fully coneected and able to comunicate with another via TCP based protocols
+\item file is made durable by being replicated on multiple file nodes
+\item this also allows improvents to data transfer bandwith as it is more lickly that data will be located near the computer that needs it 
+\section*{architecture }
+\subsection*{name node}
+\item the HDSFS name space is a hierachy of files, files and directories are represented on the name node by inodes chich record atributres liker permisions modifcations and acess times 
+\item the file content is split into large blocks and each block of the file is replacated at multiple ussualy three data nodes. 
+\item hte node names maintains the name space tree and mapping of file blocks to the data node( ie where the data is physcially stored)
+\item an hdfs client wanting to read a file first contact the name node to lcoate the data locks comprising the file and then reads the blocks conetnts form the nearest data node/ '
+\item when something is written to a file the name node nominated three data nodes to store the updated data. 
+\item HDFS keeps the entire name space in ram. 
+\item all teh meta data is called the image 
+\item the back up of the image is called a checkpoint 
+\subsection*{data nodes }
+\item each data blcok replica on a data node is represented by two files on the hosts native file system.
+\item the first file has the data hte second has the blocks meta data 
+\item host computers can share multiple blocks so if one block only takes up as mcuh sapce as it can fill
+\item when starting a program the name node checks that each data node has the right name space id and software versions 
+\item the namespace id is asigned to the file system instance when it i formatted, the name sapce id is persentaly sotre on all nodes of hte cluser, so nodes with diferent namespce id can not join a cluster keeping inegrity (ie no wierd computers on your stuff)
+\item the name node stores the storage id of each data node which registers which is a unique identfier. 
+\item datanode idenfties block replicas to the name node by sending a block report
+\item the data node sends ping the name node regularly with heart beats if these do not come through for a period of time the data node is thought to be dedicated
+\subsection*{hdfs client}
+\item users work with hdfs using hte hdfs client 
+\item user can write or read files. gives instructions to name node writes and reads from data nodes
+\subsection*{image and journal}
+\item the namespace image is hte file system meta data that describes the organization app data files and directories
+\item the journal is a commit log for changes to the file system 
+\item the name node in addition to serving client requests can also work as either a checkpoint or backup node 
+\item the checkpoint node combines the existing checkpoint and journal to make a new checkpoint (the checkpoint node typically run on a different host than the name node)
+\item having checkpoints is a good way to ensure system data will be ok in the event of a crash 
+\subsection*{backup node}
+\item the backup node is a a read only name node that works kind of like a checkpoint node but stores the most recent journal in its local memory so if the name node goes down the information is quickly accessible
+\section*{file and io operation}
+\subsection*{file read and write}
+\item apps can add data to hdfs by creating a new file adn writing data to it. after the file is closed the it can not be written to except by append's that is adding stuff to the end 
+\item when a client tries to write to a file they ping the name node and are the only system allowed to write to that file until there transaction is done 
+\item when file is to large for current block, the name node makes new blocks and tells certain data nodes to hold replications 
+\item if a user tries to read a file, it is conected to the nearest data node, if that read does not work it is conected to the data node with the nearest replica and so on 
+\item a user can read te file from a data node that is being written to, but it gets the last line (ie where that file could be be modfied ) from another replication of the file 
+\subsection*{block placement}
+\item nodes are organized in racks. 
+\item nodes of a rack share a switch 
+\item racks are coneected by core switches
+\item comunication between two nodes in different wracks had to go through multiple switches
+\item the network bandwith between nodes in the same wrack is greater than that between wracks
+\item network bandwith between nodes is estimated by there distance
+\item when a new file is created hdfs places the first replica on the node where the writer is located. the second and third on two nodes in a diferent rack and the rest are places randomly to ensure that if any single node or wrack goes down that file is not lost 
+\subsection*{replication managment }
+\item the name node tries to always ensure that each block has the correct number of replicas
+\item it priortizes adding replicas to blocks that have to few over deleting replicas from blocks that have to many
+\item always makes sure that not all replicas of a block are on a single node
+\subsection*{balancer}
+\item there is a balancer tool that tries to spred disk usage evenly across the hdfs cluster
+\item there is also a block scanner that periodaclly makes sure that the meta data of each block is in line with there block id 
+\item the rest of this paper is about practices at yahoo
+
+
+
+\end{itemize}
+\end{document}

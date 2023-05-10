@@ -1,0 +1,220 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{Big data in class final }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section*{Introduction}
+\begin{itemize}
+    \item ok they are getting started 
+    \item final is friday at 6pm 
+    \item need pencil adn id 
+    \item \textcolor{red}{can bring 1 page of hand written notes}
+    \item \textcolor{blue}{don't bring any devices}
+    \item \textcolor{purple}{exam consists of 60 multiple choice questions which will be evenly distributed}
+    \item there are only conceptual questions, not code. this is stuff that could come up in an interview high level conceptual questions 
+    \item just hand write notes, lets just keep stuff simple aim to write less. 
+    \item going to be on a scan tron 
+    \item focus on things that are tome some extent at a high level 
+    \item around the same level of detail as the quiz 
+\subsection*{survey results}
+    \item there were not many survey results 
+    \item tried to make review slides follow that distributions
+    \item most were focused near the 3rd quarter of the class. 
+\subsection*{relational databases }
+    \item not much to say 
+    \item they help standardize how data is 
+    \item data validation is also helpful
+    \item speed up access 
+    \item sql is good
+    \item ACID rules
+    \item atomicity if have a sequence of operations either all complete toghter or all fail togther 
+    \item related to relational databases but not specfic to it, it is a thing for any concurent databases 
+    \item dutability is where we pass to the operating system 
+    \item consistency just means that everyhting will stay in line with the schema always in valid started
+    \item independence order of execution is irrelevant this matters less because we have read only data in most stuff
+\subsection*{map reduce }
+    \item map: process 1 record a time genearte key value pairs
+    \item reduce: process 1 key at a time output single object (these are paralell)
+    \item combiner: kind of like a reducer in the mapper
+    \item constrianing form of computation to make things faster (really really tight constraints )
+    \item combiner trys to minimize key skew, by doing a partail reduction 
+    \item combiners only really work if certain conditions are met 
+\subsection*{complexity analysis}
+    \item analyzing complexity 
+    \item just count the number of loops my man sheesh 
+    \item input of some length 
+    \item how many steps does that algorithm tkae to complete that results
+    \item we only care about the dominating term and the lower bound $O(n)$
+    \item can do teh same thing for space
+    \item in the context of map reduce have to loop at the number ofkeys, number of reducers, number of mappers
+    \item questions about combiner, 
+\subsection*{map vs reduce}
+    \item reducer always sees key and list of values for that key, mapper just sess imput keys 
+    \item reducer sees all the values for a key, mapper just sees one record at a time 
+    \item the mapper should be independence of one another 
+\subsection*{map reduce questions}
+\item reducers do not reduce the number of keys, they reduce the number of values per key the number of jobs that goes to the reducer will be the same 
+\item a map function in map reduce does not have to produce any intermediate value for every line, like if we were filtering for a word
+\subsection*{HDFS}
+    \item name nodes vs data nodes 
+    \item data nodes store the data 
+    \item name nodes sotre the name 
+    \item in HDFS large file broken into blocks, the data nodes store the blocks but not the meta data saying where the data is from 
+    \item the name node maps file names to the data nodes that contian the block, the name node is your lookup table the data node is your storage
+    \item in HDFS we get around concurent acess stuff, by just keeping the files read only 
+    \item we do not have to worries about t
+    \item repelcation factor, defualt repelcation rate is 3. 1 copy on 1 mahcine, 1 copt on a difrent machine on teh same wrack, 2nd copy on a seprate wrack if that wrack goes down 
+    \item raising the repelcation factor means that it is going to be easier to find the data that you need at the cost of storage
+    \item does it cost computation effeciceny to increase repelcation rate, no it is increasing data? it will increase storage cost obv tho
+    \item data is append only, does that mean we can add info to the same file?, the idea is that you are allowed to append ie just change the last block in teh file once the block is full you create a new block. 
+    \item this is why when you run teh same map reduce program with out cleaning up output files it crashes? 
+    \item the mapper write back to temp files on hdfs that are cleaned up by map reduce, 
+\subsection*{questions}
+\item if the name node fails you are in trouble. 
+\item it happens it is not permanent it just means there is server down time 
+\item this goes back to the CAP therome, we are giving up A when the name node fails, you need to wait for the server to not be crashing 
+\subsection*{spark}
+    \item the bottom line is that map reduce is form mid 2k it was good for what it was meant to do but not all tasks 
+    \item but we wanted to do other tasks, like iterative tasks, 
+    \item in map reduce all the reducers sit around idely until teh mappers finish that is not good if we are doing iterative sutff 
+    \item spark uses RDD where we sepeate actions form transfomrations. we can do a lot of transfomrations this allows for efficent computaiton 
+    \item \textcolor{purple}{wide vs narrow dependicy} a narrow dependicy is easy to parallelize. the solution is almost always make sure that if you are joining RDD's they have teh same partion sturcutre (and thus are a narrow dependicy) the partions can map directly, the output depends on at most one input partitin so can propigate the same partion sturcutre
+    \item a wide partion is something that dependds on all our data data, joins are wide unless two tables have same partion strucutres 
+    \item want dependicy narrow or it is hard to parallelize 
+    \item spark is a better implementation for SQL  as well as machine learning 
+    \item SPARK gets the same parallelism as map reduce with less ristirvtions 
+    \item spark is a direct response to stone breaker
+    \item relation between spark and map reduce, spark is seperate from map reduce it is a completly seperate thing 
+    \item $\cdots$
+\subsection*{spark questions}
+\item compare adn contrast rdd and adta frame 
+\item spark data frames are not reaed only that i the whole point that is why we have ittertive stuff going on.  
+\item each step in an rdd lineage graph must be compltetd fbefore th enext false 
+\item spark uses pieples to cncet mutliple stages of map reduce proessing. false no it is a sepeate thing that was made to adress issues from map reduce
+\item spark can use hadoop but hadoop and map reduce are not the same thing 
+\item are teh action going to be sequential, 
+\item lineage graph is just about transfomrations, the actions are outside of the rdd 
+\item rdd's move backwards though the computaiton graph until it finds a data source
+
+\section*{coloumn oriented storage }
+\subsection*{review}
+\item the defualt for spark is parquet 
+\item this makes things faster sometimes jsut need 1 coloumn but not all rows. 
+\item regularity helps with that this leads to speed ups
+\item column oriented storage becuase col have same data types all us to search through them faster
+\item can use dremel that alays truns a hierchal object into a tabular rerpreation that we can view as a col oriented storage
+\item the bigger take away is that dremel was cool but no one uses it 
+\item parquet is actually used. 
+\item csv files are a lot slower than parquet 
+\item this is why the project data was all parquet not csv
+\item parquet is not human readbale tho 
+\subsection*{questions}
+\item explain parquet and dremel, just udnerstnd the relationship between the two . 
+\item the dremel system was designed to process all subsets of records in a data set. n it is for sunsets of atriibures for all records. teh point is it is not record based it is feature based 
+\item when written to hdfs parquest files localte difrent cols in difrent hdfs blocks that is false, parquet files devide blocks by rows not col 
+\item what is a block is a subset of records a contiogous chunk of a dataframe but spanning all the coloumns, that is why the whole thing is called parquet 
+\section*{dask}
+\subsection*{review}
+\item there were a lot of dask thoughts 
+\item hwen would you want to use dask?
+\item it is kinda dependt, spark is good if you are ok doing everyhting in spark if you need to do things where spark interacts with something in pyhton that is not written in spark, than it gets a bit messy to put things in and out of spark. so dask is ncie for that kinda thing
+\item most of the time you will be dealing with sql 
+\item after that spark number 2, spark is good for regular data 
+\item for ragged data or messy data dask can be usefull, or if you need parallelism that is not rows in a data frame but chunks in an array, get more flexability in your data types 
+\item scalal makes constrains makes stuff faster
+\item dask accepts what ever comes out of your pyhton code, but hard to figure out waht you are doing 
+\item you have to work harder to make dask work well
+\item but there are some jobs where dask is ideal
+\item daks is for data scicne use cases not software engeneering stuff
+\subsection*{questions}
+\item cross compare spark and dask. dask is spark written by scipy poeple, the computational princples are similar. in terms of how to optimize stuff it comes back down to partiion sturcutre need to minimze comuncaiton early on as well
+\item in some programs just have to loop, the thing is you need to identify when the task is worht it. 
+\item no strong words of advice 
+\item in sql indecies are how you optimze those should be designed for the queries you think you want to run 
+\item those are just additional datastrucutres that can make things faster but do not effect ur data 
+\section*{aproximate nearest neightbors}
+\item this is all similarty search
+\item one of the key aplications is sim saerch 
+\item that is a fundemtnal use case 
+\item as you increawse block size in lsh your liklyhood of colision goes down but have to do more work, so there a trade off with block size and number of blocks 
+\item similarty search lsh lets you do this in a really fast way
+\item boost the high similarty item reduce the low similarty item 
+\item brute force similarty is overwhelming for large documnets that is the high lvel thing. 
+\item we did not really talk about distance metrics 
+\subsection*{questions}
+\item lsh is built on the idea of randomness in mini has that is from the hash function but that can be wastefull saptial tree is instead of doing indepednint paritons we do resursive splitting, we are cut our data point in half as many times as we want. this is effecticly many locally depdnt hash functions 
+\item cosine similarty lsh if you want to aproximate cosine similart can check the lsh by randomly projecting them 
+\item multi probe not requiring that stict a match for all values
+\item multiprobe at every sate fuz the results a bit 
+\item at the high level cosine similarty is very genearl
+\item min has failes when a single elment belong to every set in a colection true 
+\item min has sifgureates are genearted by aplying false the min has functions has not direclt ofmared in min hash
+\subsection*{reproducability}
+\item this is really important in big data
+\item it is hard to reproduce results in big data and they propigate over large dataset 
+\item reproducability can you reproruce this. 
+\item most of the results from the 90's can not be reporduced
+\item there are all kinds of best practices that help with reproducability
+\item want to have three coppies of all your data files, at least 1 backup off site? 
+\item want to have organzied project strucutre, input data, process code, results results, metadata 
+\item want to have at least one readme file on how to use things
+\item in jupyter note books some times cells are not even run in orderd 
+\item there are safer ways to store sensative data
+\item verion contorl use git 
+\item that is super important in big data
+\item get the same result so can retrace your steps
+\subsection*{recomender systems}
+\item idea is to predcit whcih imtes a user wil interact with form a large catalog
+\item what is the dampening facotr? it is how we considerd items with more interactions to be a better esitmate of itnerctions adn make sure the wheigh more 
+\item the next step is the latenent factors model 
+\item decompose the model into seperate vectors
+\item implicit vs explicit feedback, explicit liek radings implicit like if you watch a youtube vdio or waht ever 
+\item explicit feedback is ussualy a storng signal that is a clear indecator but is often of a lower volume 
+\item implicit feedback tends to higher volume with lower signal to noise feedback, 
+\subsection*{saerching ranking evaluation}
+\item google used ranom surfer 
+\item page rank etc 
+\item ranked lists evaluations for seach recomendaiton systems etc
+\item the thing that we say is that this cooks down to a linear algebra problem 
+\item rank list evaluation is important 
+\item the simplest model is that we make a predicted list of items for eaech users, we want all the pluessed to come before all the minues. the detials between how you weight postives and negatives and where they are in teh list distingushed metircs, but the main point is evaluating a rank list as if it is a prediction 
+\subsection*{question}
+\item in page rank, the model is random if that browser lands on a page that has no out going links of links to its self, then teh model can not get out of there 
+\item so ig you ever have a change of ladning there, it will think it is important, so they introduce this teleprotiaton aprameter that lets your suffer telport to somehweere ranodm 
+\section*{difrential privaise }
+\item ways to keep data more private 
+\item in one sentance it is shown taht jut annoamity is nto sufficent 
+\item guess who you can reduce earch sapce ina  lot of dimenions
+\item once the thing is de anonoized it is out there :/ if that is sensative we have problems 
+\item difrential privacy keeps raw data private for ever adn you interact with the dataset through an api
+\item add some specfic laplacian noise that can not easily be removed it is absolute value of expotnetial so hard ot remove 
+\item it is harfd ot know if you are in teh data set if it is given 
+\item for a larger dataset there is a lot of pluasable denialbility 
+\item this is limited to multiple queries 
+\item so privacy laws agreate
+\item the noise that we inject is at the level of the computaiton we ask in result for it is on a per queries basis not, in teh dataset it's self 
+\item the raw data is unefected which is ncie :)
+\item but we inject noise on the level of the query so it allows for pluasable denialbility, the user of the api may know what type of noise was put in the dataset
+\subsection*{gpu }
+\item computational parallelism from dedicated hardware 
+\item simialr to traditional cpu but with more resritive progrma flow 
+\item same components jsut in difrent proprtions 
+\item gpu many small processrs that do a few computaitons in small steps 
+\item think of aech core on teh gpu as youching a difernt part of memory that is a lot of the wya there 
+\item cuda frame work is thread ie indivdual expdlubtio goruped into blcosk whicha re groupe dinto grids 
+\item adn that is how we devied the work up in a way that we can devide over out interite dataset we just run on one grid at a time until we are done 
+\item can return arbitary data types 
+\item a kuda kernel does not prevent you form looking at difrent data 
+\item that is nice becuase you can do convoltions easily 
+\item this allows limited comuincation ebtween threads but doing this effecticly requires some involved profmraing 
+\item they are statnig to creep more into like normal data science aplications
+\item 
+\end{itemize}
+\end{document}

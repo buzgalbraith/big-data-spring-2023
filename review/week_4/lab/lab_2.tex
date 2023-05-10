@@ -1,0 +1,23 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{title }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\subsection*{question 1 }
+\item write this sql query as map reduce\\
+ SELECT year, genre, count(distinct name) as $num_movies$
+FROM movies
+WHERE genre = 'Western' or genre = 'Sci-Fi'
+GROUP BY year, genre
+\item 
+\end{itemize}
+\end{document}

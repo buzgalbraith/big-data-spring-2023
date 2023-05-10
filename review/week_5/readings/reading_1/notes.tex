@@ -1,0 +1,75 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{Spark: Cluster Computing with Working Sets }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{abstract}
+\begin{itemize}
+\item map reduce is build in an acyclic data flow, which limits the type of programs it can be used for 
+\item spark allows for iterative algorithms while still having fault tolerance
+\item this is done with a spark RDD which is a new abstraction that is a read only collection of objects across a set of machines, that can be rebuilt if a partition is lost. 
+\section*{Introduction}
+\item map reduce does not allow iterative algorithms because its speed and fault tolerance come from restricting to map and reduce functions 
+\item this frame work does not work for iterative jobs like many ml algorithms
+\item also not suited for interactive analytics, because hadoop treats each sql query as a map reduce functions and thus must read data from disk at each call. 
+\item spark supports applications with working sets that is re-used across multiple parallel operations 
+\item the main abstraction in spark is the RDD which represents a read only collection of objects partitioned across a set of machines that can be rebuilt if a partition is lost
+\item users can explicitly cache an rdd in memory and reuse it in multiple operations
+\item RDD get fault tolerance through \textcolor{blue}{lineage} that is stored information within each partitioned to understand how that partition was derived from other RDDs
+\item RDDs are at a sweet spot of expressiveness and scalability
+\item spark works in Scala 
+\item it is the first general purpose programming language that can be user interactively to work with large datasets over a Cluster
+\section*{programming model}
+\item to use spark developers write a driver program that implements the high level control flow of their applications and launch operations in parallel
+\subsection*{RDD}
+\item RDDs are a read only collection of objects partitioned across a set of machines
+\item ellements of an rdd dont have to exist in physical storage, instead a handle to an RDD has enough information to compute the RDD starting from data in reliable storage
+\item this means rdd can be reconstructed if a node fails
+\item RDDs can be built in 4 ways. from an object, by parallelizing a scala object, by transforming an existing rdd, by changing the persistance of an RDD
+\item RDDs are by default lazy and emphemeral that is partitions of a dataset of computed  when they need to be used for parallel computation
+\item this can be changed wih the cahce and save methods 
+\item the cahce method keeps the rdd lazy, but  says it should stay in memory after computed because it will be re-used
+\item the save method evaluates the dataset and writes it out to HDFS
+\subsection*{parallel operations}
+\item spark has the following parallel operations
+\begin{enumerate}
+    \item reduce combined dataset elements using a reduce function
+    \item collect send all elements of the dataset to the driver in program
+    \item foreach pass each element through a user provided function 
+\end{enumerate}
+\item spark does not support a grouped reduce operation like map reduce (that is group by)
+\subsection*{shared variables}
+\item there are two types of variables that are shared between nodes 
+\item there are broadcast variables which are large read only objects like RDD or look up tables 
+\item there are also accumulators which are variables that can only be added to, generally used as counters
+\section*{examples}
+\subsection*{text search}
+\item suppose we want to count the errors in a large dataset into an rdd
+\item we read in teh file filter for those rows with error 
+\item map rows with error to one 
+\item then reduce with a sum
+\item the middle two lines are transformations not actions, so they can be done lazily
+\subsection*{logistic regression}
+\item read the file in as an rdd and cache it since we will be using it a lost
+\item then works more or less normally in parallel just usingan accumulator for the gradient 
+\section*{implementation}
+\item spark is built on top of mesos a cluser operating system this is helpful because it lets spark run alongside other existing computing frameworks
+\item the core of the spark implementation is RDD's 
+\item all rdds have liniage which track how they derived from there parent data source 
+\item each rdd has a get partitions operation as well as getiterator adn get preferd lcoaiton 
+\item when a parllel operation is invoked spark creates a task for each partion and sends these task to worker nodes
+\item try to send tasks as close to there data source as possible to achive locality
+\item linage structure makes it easy to trace back where something fialed and thus have fault tolerence if you need to reconstruct it 
+\subsection*{shared variables}
+\item they talk about how shared variables are serialized which is important but not super revelnt for this 
+\subsection*{results}
+\item the rest of this paper is just talking about results and related works. 
+\end{itemize}
+\end{document}
