@@ -14,9 +14,26 @@ and Task Scheduling}
 \section{abstract }
 \begin{itemize}
 \item dask enables parallel and out of core computation. 
-\item we couple vlocked algorirhsm wirh memory awate task scheudling to achive a parallel out of core numpy clone 
+\item we couple vlocked algorirhsm wirh memory awate task scheudling to achive a parallel out of core Numpy clone 
 \item this scales to modern hardware and large datasets 
 \section*{Introduction}
+\item sci py stuff does not use parallel implementations 
+\item we want to parallelize the scipy code with out needing a full re-write
+\item dask encodes parallel algorithms using python primitives, and has hte dask.array type a parallel n dimensional array that copies numpy's interface
+\subsection*{modern hardware}
+\item hardware has changed a lot in recent years 
+\item most modern cpu's have multiple threads, most modern storage is on an ssd which makes reading information from disk much faster and thus more practice
+\item these advancements make single machine implementations rival small cluster computation while keeping the ease of working with a single machine 
+\subsection*{dask graphs}
+\item dask encodes parallel computation in a way that requires low amount of instruction by the developer
+\item a dask graph is a python dictionary mapping keys or tasks to values 
+\item storing programs in graphs allows for easy task scheduling 
+\subsection*{specification }
+\item represent computation as a DAG of tasks with data dependincies 
+\item a task is a tuple with  a callable first ellement 
+\item tasks are automic unfits of work that can be run by a single worker
+\item an argument may be either a key present in the dask, a literal, another task,, or a list of arguments
+\subsection*{dask arrays}
 \item 
 \end{itemize}
 \end{document}
