@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{week 10 readings }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\item the second reading is like, a new york times thing to motivate why we should care about this i don't think it is needed 
+\section*{a model for recommendation systems}
+\item recommendation systems have two types of entities users and items
+\item we get a utility matrix showing how much the user interacted with each item what ever that means in this context. 
+\item the matrix is sparse and we interpret empty elements as meaning we have no information about the users preference on that item
+\item the goal is to predict the blanks in the utility matrix
+\item in recommendation systems we do not need to predict a users ratings of all items we just need to get the top k items for that user 
+\item the long tail is basically in online services there are so many products to recommend so it is required to learn individual recommendations for users 
+\item there is implicit and explicit feedback to take into account when making recommendation systems
+\subsection*{content based recommendation systems}
+\item the main idea of content based recommendation systems is to focus on properties of items and recommend similar items to items similar tom those we know users like 
+\item must construct each item a profile based on characteristic's tht can be used for recommendations
+\item for documents can remove stop words and use the reminaing words to compute tidf scores
+\item we can store item features in a vector. discrete data as booleans numeric data as numeric and as long as we keep the coloumn order consist we can take cosine similarty
+\item we can also make a user profile vector which has the atributes that the user interacted with 
+\item with both a user and item vector we can use cosine similarty to recomend items 
+\item could also view the problem in terms of building an ml classfier mdoel 
+\subsection*{colaberative filtering}
+\item in colaberative filtering instead of looking at similarty of iterms we focous on teh similary of the users ratings for two items 
+\item doing this requires a good distance metric
+\item but once we have this we can just predict any missing rating by taking the average of the n users nearest the user we are trying to rpedict for who have repdicted this item 
+\subsection*{dimensionality reduction }
+\item another approach to recommendation systems is to view the utility matrix as the product of some user vector adn some ratings vector and try to learn thsi decompison
+\item bassically we just set estimate the missing valuesby minimze mean square derorr versus what we arleady know 
+\end{itemize}
+\end{document}

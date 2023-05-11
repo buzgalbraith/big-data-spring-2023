@@ -1,0 +1,98 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{reproducibility lecture }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\item explains her role 
+\item how to convert from one file format to another 
+\item can make an appointment about many topics
+\item reproducibility has been a consistent concern for a long time 
+\item reproducing research is hard 
+\item the majority of studies across all dispense were found to be irreducible  
+\item these can have effects that are important
+\item reproducibility is when independent people use the same code and data to verify results
+\item code and data reproducibility are part of this, we want to make the entire pipeline reproducible 
+\item replication, independent people use the same data and dirent analysis to validate results
+\item reviewable research is just the article 
+\item open and reproducible research means we have the all the data and the computational frame work 
+\item we need to be able to test the reproducibility of results
+\item even software results can vary depending on the hardware or operating system that is being used
+\item reproducibility allows one to use current work or code more easily down the road
+\subsection*{methods }
+\item need to have set practices for data and code management
+\item at the start of project set the following 
+\begin{enumerate}
+    \item storage adn backup 
+    \item file formats 
+    \item project structure 
+    \item version control 
+    \item documentation 
+    \item and group roles
+\end{enumerate}
+\item following these tools will make sure the work is understandable by machine but humans as well 
+\item should have 3 copies of all research material one in a different physical location than you 
+\item original copy, cloud service and external hard drive 
+\item the life time of a external hard drive is like 3 to 5 years 
+\item nyu google drive good for moderate use data 
+\item box is good for big data with security concerns 
+\item nyu hpc can also let you back up and store data 
+\item if working with highly sensitive data ask questions 
+\subsection*{project structure and documentation}
+\item it is easy to louse your research data 
+\item do not put documentation in file path put it at a readme file 
+\item make sure to explain the version of your pyhton 
+\item also comment how the data is collected and interpreted might help
+\item if using jupyter can write what you are doing while you are writing it
+\item file naming is important keep choices logical 
+\item add prefixes to you data with the data created YYYY-MM-DD so you can sort it easily
+\item don't use spaces in your file names 
+\item keep file names short, a file name that is   
+\item keep a standard way of organizing projects 
+\item try keeping each project in its own directory
+\item put documentation in docs folder 
+\item put data in a data folder 
+\item code in a src folder 
+\item results in a results folder 
+\subsection*{file types}
+\item use a common file type that is file agnostic 
+\subsection*{version control}
+\item try to use version control if you are writing code 
+\item github enables collaboration can undo and re-do version control 
+\item git is a free open source tool that can be used to store gitrepos 
+\item git works best with plane text formats 
+\item use git to keep track over versions 
+\item once we have established habits for code and code environments 
+\subsection*{computational environments}
+\item there are tools that will help with computational reproducibility
+\item containers are pretty common and liked 
+\item web based ides are pretty popular as well 
+\item when processing and analyzing tools dockers can be good 
+\item web based are good for longer term reproducibility
+\subsection*{using containers}
+\item a way to produce virtual operating system outside of the operating system 
+\item docker is the most popular 
+\item learning how to make containers work can be tough 
+\subsection*{web based ides}
+\item web based ides are a nice 
+\item just ide's on the browser, allow users to export or share work in the web 
+\item whole tale is popular for reproducibility
+\item web ides require that you work in there platform first. that can be tough if you need to different computing environments
+\subsection*{web based replay system}
+\item take links to code hosted elsewhere and makes a runnable ide for git 
+\item this is pretty flexible 
+\item \textbf{binder} is pretty popular for this 
+\item packaging tools export all of the computational environments you used 
+\item they pack everything you used in one place
+\item reprozip traces all steps and dependencies and can make a protbale bundle for everything that needs to be re ran later
+\item try things out and see what works well. 
+\end{itemize}
+\end{document}

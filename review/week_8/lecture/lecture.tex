@@ -1,0 +1,139 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{lecture 8 similarity search }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\item what is a hash function? a function that maps some input to a key 
+\subsection*{finding items in a large collection }
+\item search and recommendations rely on similarity calculations 
+\item users provide a query could be a search string, example document etc
+\item and the system returns a list of matching documents for the database
+\subsection*{example}
+\item search engine: take a test string output related web documents
+\item recommender systems take in some representation of a user output item recommendations
+\item reverse image search put in a photo get out similar photos or where it came from 
+\subsection*{basic approach}
+\item given a query q for each document in collection d compute $sim(q,d)$ abd return the top k documents
+\item this is linear in time can we do it more efficiently?
+\subsection*{does this scale}
+\item no it grows linear with the size of the connection and how we compute dimensionality make get more complex as the dimension of the representation grows 
+\item so can we do better than a brute for search?
+\subsection*{Approximate search}
+\item so if we have n total documents we want to use some fast method to find $n<<N$ candidate nearest neighbor pairs
+\item then we can use a true similarity match on the candidate set to discard any false positives
+\item this will require a data structure with a sub linear search time 
+\section*{min hash}
+\subsection*{similarity for sets}
+\item items are represented as sets could be words in a document, movie a user has watched etc 
+\item \textcolor{blue}{jaccard similarity } is computed as $J(A,B)=\frac{A\cap B}{A\cup B} $
+\item and the jaccard distance is $D(A,B)=1-J(A,B)$
+\subsection*{min hash}
+\item fix a random ordering of the elements (a permutation ) call if $\pi$
+\item imagine a table of set membership that is one hot encoded
+\item for each set S its hash is given as $$h(s|\pi)= min( k|\pi(k)\in s  )$$
+\item so that is the index of the first permuted item belonging to S
+\textbf{slido}: what is collision? it is when two values that are different has to the same key
+\subsection*{permutation indexing}
+\item here is a more concrete example \\ \includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 1.28.43 AM.png}
+\item \textcolor{blue}{hash collision } is more likely to happen when sets overlap
+\subsection*{jaccard similarity and hash collision}
+\item for two set $S_1$ and $S_2$ there are three types of rows
+\begin{enumerate}
+    \item type 1: $\pi(k)\in S_{1}\cap S_{2}$
+    \item type 2: $\pi(k)\in S_{1}\delta S_{2}$
+    \item type 3: $\pi(k)\not \in S_{1}\cup S_{2}$
+\end{enumerate}
+\item note that a collision $\iff$ a type 1 row before all type 2 rows 
+\item $P(\text{collision})=\frac{\text{ number  of type 1 rows}}{\text{number of type 1 + the number of type 2 rows }}=\frac{S_1\cap S_2}{S_1\cup s_2}=J(S_1,S_2)$
+\subsection*{monte carlo Approximate}
+\item we want to get a good approximation of the probability of collision over potentially large sets, so we can just do monte carlo approximations and generate many random permutations and count there outcomes  
+\subsection*{searching with min hash}
+\item a user provides a q 
+\item initialize an empty dictionary $candidates \rightarrow \{\}$
+\item for each item $\pi_i$ in the permutation $\pi$
+\item compute the hash $h(q|\pi_i)$
+\item $candidate +=candidate + \{S:h(q_i|\pi_i)=h(S|\pi_i)\} $(that is documents that collide with the query)
+\item then we return the candidates ordered by $\# of collisions $ which is there Approximate similarity score (could also just take the full jaccard score of those candidate points)
+\item note that we do not need to compare the full collection to the query only those points that collide with it. 
+\item \textcolor{blue}{bag} an unordered group of objects with repeated elements
+\subsection*{extending this to bags}
+\item \textcolor{green}{Ruzicka similarity} is jaccard distance extended to bags
+\item idea reduce bags to sets by uniquely identifying each repetition \\ \includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 1.51.05 AM.png}
+\item then we can calculate the Ruzicka similarity as $$R(A,B)=\frac{\sum_{i}min(a[i], b[i])}{\sum_{k}(A[j], B[j])}$$
+\item this is not a perfect way to do it, but this broadly approximates jaccard similarity for bags 
+\subsection*{improving on word counts}
+\item word $n-grams$ get permutations of n words in a row 
+\item character shingles get n characters in a row 
+\subsection*{efficient approximation }
+\item taking all possible permutations permutations can be expensive and would not scale
+\item instead we can replace permutation $\pi_{i}$ with hash $H_i$
+\item a permutation is a perfect hash ie a reordering where distinct elements can not collide
+\item we can Approximate this with an imperfect has where distinct ellements may collide and as long as these collisions are unlikely this wil still work 
+\item suppose we are trying to populate signature matrix initialized like this \includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 2.04.35 AM.png}
+\item and we have this table of hashes and signature matrix \\ \includegraphics*{images/Screenshot 2023-05-11 at 2.04.59 AM.png}
+\item the signature array is initialize to infinity for each entry
+\item in the first row both $H_1, H_2$ have A as once so update the A value for both hashes to be 0
+\item in row 2, the c column is where we look since it has the first 1 so the $h_1$ value of c gets set to 1, and the $H_2$ value of c gets set to 2 
+\item in the third row we look at columns b and d both of them get updated to there coresponding h value since there orginal vlaue is infinity
+\item ir row 4 d is 1, h\_2 is 0 so that vlaue updates to 0 $H_1$ is 3 which is greater than it current value so it does not update 
+\item in teh next one b and d are looked at both values of  updated and only the h1 value of d updates
+\item and so on \includegraphics*[width=10cm ]{images/Screenshot 2023-05-11 at 2.13.37 AM.png}
+\subsection*{when min hash fails}
+\item permutation min hash, note that collisions are more likely when a small set of items are shared across many documents so stop words like "the" "and" "or" can be issues
+\item hashing approximations doe not fix this, collisons are possible and when we have a lot of collisions there is a large candidate set and slow retrieval 
+\item what is recall? that is your ability to detect a true positive $r=\frac{TP}{TP+FN}$
+\item so our new question of interest becomes how can we reduce the size of the candidate set?
+\subsection*{locality sensitive hashing}
+\item traditional hashing scatters data as if random 
+\item local sensitive hashing has a high probaility of collisions on input that are near each other 
+\item LHS is a really wide topic and stuff
+
+\subsection*{LHS + min hash}
+\item care signature matrix into b blocks of R rows 
+\item hash each sub column with a standard non local hashing function w. Pick W such that collisions are rare 
+\item let the candidate set = items that collide in any row \\
+\includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 2.22.48 AM.png}
+\item what is the likelyhood that we had one block where all rows match 
+\item if the likelyhood of a single row matching is j 
+\item the liklylood hor all rows in a block cldiing would be $j^r$ (so a lot less probible for collisions to happen)
+\item  so collisions are more likely for high jaccard similarity rows and less likely for less
+\item if LHS and min hash has low recall (ie not getting many true positives) what could you do, change the hash function to have a higher chance of collisions
+\subsection*{lhs for cosine similarity}
+\item what if wae want to compare vectors $u,v \in \mathbb{R}^{d}$ by cosine similarity
+\item if we picked a vector at random and uniform from the unit sphere and hashed vectors as postive or negative if there dot product was postive or ngative what is the likelyhood of collisions
+\item is the likelyhood that it is more than 90 degrees away from one and less than 90 degrees away from the other 
+\item that is not exactly $cos(\theta)$ but it is monotonically decreasing in $|\theta|\rightarrow$ same rank order as cosine similarity thus can be used to estimate cosine similarity
+\subsection*{multiple projections}
+\item then much like we did with multiple hashes in jaccard space, we can find the probability of collisions with multiple projections onto random vectors on the unit sphere 
+\subsection*{multi probe LSH}
+\item random projections can isolate neighbors from each other. LHS uses multiple projections to minimize the chance of neighbors getting isolated but ti might take a lot of projections
+\item multi probe LSH explores neighboring in hash buckets to try to prevent this. bassically it just puts a query in the bucket if it is within a certain distance
+\item ends up with better recall and fewer hashes 
+\section*{spatial trees}
+\subsection*{recursive partitioning}
+\item spatial trees recursively partition data into subsets
+\item we pick a direction w 
+\item spit teh data set at the median of $\{w^tx_i\}$ ie split the data set in half based on the magnitude of each data points dot product with w 
+\item recurse on teh left and right subsets
+\item stop when we are sufficiently small
+\item each split cuts the data in half so this is $O(log(n))$ splits to get small candidate Sets 
+\subsection*{KD trees}
+\item the splitting section cycles through basis dimension 
+\item this works in low dimensions but is bad for high dimension data
+\item can do a PCA type thing and split in the direction of max variance and that will likely work better 
+\item split trees can also isolate data near descion boundarys 
+\item carefull query can now land in mutple leaves 
+
+
+
+\end{itemize}
+\end{document}
