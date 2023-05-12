@@ -1,0 +1,222 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{week 10: Recommender systems }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\subsection*{why the need for recommendation}
+\item 
+\begin{enumerate}
+\item physical objects occupy space
+\item brick adn mortar shops must satisfy physical constraints. 
+\item curators must look for some notion of urility 
+\item they chose to keep the items that satisfy the most customers
+\end{enumerate}
+\item digital items
+\begin{itemize}
+    \item on the web items take up no physical space so can have a lot of them 
+    \item without algorithmic curation choice become overwhelming 
+\end{itemize}
+\subsection*{short head and long tail}
+\item the concept is that popularity exponentially decays 
+\item so there is a \textcolor{red}{short head } of item that are absurdly popular like Drake or what ever 
+\item  then there is a \textcolor{blue}{long tail } ie many times more movies that have little to no popularity (but users may still enjoy)
+\item here is a graph of that for track ratings \\ \includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 4.02.28 PM.png}
+\item a retail store has limited space so focuses on the short head
+\subsection*{search and Recommender}
+\item early Recommender systems relied on indexing and search 
+\item users must describe what they want 
+\item same query from different users will get the same results (so not personalized)
+\item textcolor{red}{recommendation = search + personalization} that is a users history informs the ranking of results
+\item along with this is the idea that other uses histories might be informative 
+\item Recommender systems are the primary way users interact with large collections (like youtube Recommendations )
+\subsection*{personalization is critical}
+\item traditional search methods model relevance of an item in response to a query
+\item personalized search methods do the same as above but model has a representation of each user 
+\item to model relevance we need to record data known as feedback 
+\item this works best in big data 
+\subsection*{generic Recommendations}
+\item given the diversity of user taste generic Recommendations do not work 
+\item for our model to be good it must beat the popularity model (ie just recommending the top 100 most popular items )
+\item that model should always be the first thing you try to build a base line. that is rank each item by average utility defined as $$utility(i)=\frac{\sum_{u}R[u,i]}{R[:,i]}$$ that is the sum of how all users rank that item over the number of users who ranked that item 
+\item this produces the short head we were discussing earlier
+\item it is hard to improve on this because people have really different tastes that can be hard to learn 
+\item there may not even be "logical corelation" like on a sonic level two songs may be similar but a user may have different feelings about the songs based on times they associate with those songs 
+\subsection*{improving baseline with out personalization}
+\item note that if only a few users rated a long, there average rating may not be representative of the whole population  (1000 4 start ratings tells you more than 1 5 star rating)
+\item two ideas 
+\item one just disregard items below a threshold level of interactions 
+\item two use a prior 
+\begin{enumerate}
+    \item so have your average utility set as $$utility(i)=\frac{\sum_{u}R[u,i]}{R[:,i]+\beta}$$ where $\beta>0$ this is kinda like regularization in effect we are adding "more gave the item a low rating"
+\end{enumerate}
+\subsection*{global items and user bias}
+\item another idea is to think of each interaction as a sum of global, item and user bias 
+$$ R[u,i]=\mu+b[i]+b[u]$$ so that is user u gave item i a certain rating that is equal to the sum of some global term $\mu$ the bias of that item $b[i]$ and  bias of that user $b[u]$ (where bias means offset)
+\item our global i teh average rating over all interactions $$\mu =\frac{\Sigma_{u,i}R[u,i]}{|R|+\beta_{g}}$$ $\beta_{g}$ is a prior for the global 
+\item  the user bias vector has item i which is the average users difference from teh mean for item i $$b[i] =\frac{\Sigma_{u}R[u,i]-\mu}{|R[:,i]|+\beta_{i}}$$
+\item  the user item vector has users u which is the average users difference from teh mean for item u $$b[u] =\frac{\Sigma_{i}R[u,i]-\mu}{|R[:,u]|+\beta_{u}}$$
+\item this model lets us make predictions for unseen interactions
+\item so we can predict for user u sorting items i by descending $\mu+b[i]+b[u]$
+\item this is not more powerful than our base line but it is more interpretable. that is on average this model does not do much better than just predicting with the average popularity since we are in effect setting biases we dont know to zero
+\subsection*{implicit and explicit feedback}
+\item explicit feedback is when users make a choice to rate a item (like a youtube video, sub to a channel, purchase an item)
+\item that gives us a really strong signal, but it takes user effort so it rare, and user can select into it so there is selection bias 
+\item implicit feedback are things we can get by just observing the user (click rate, what they download , what songs they plan, do they finish a video)
+\item this is a weak or ambiguous signal does watching a video mean you like it? (not all the time )
+\item it is really common compared to explicit feedback though 
+\subsection*{how is feedback obtained }
+\item explicit feedback makes sense when the time and effort required to give it is low compared to the time it takes to consume and tem (like more people will like a video than write a movie review)
+\item implicit feedback is much more common approach
+\subsection*{Collaborative filtering}
+\item the utility matrix is sparse  ex: suppose zero here means disliked a video, one means liked a video blank means did not interact  \\ \includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 5.14.16 PM.png}
+\item our task is to predict the missing items
+\subsection*{neighborhood models}
+\item two classes 
+\item user based 
+\begin{itemize}
+    \item the task is given user u find the most similar set of users $\{u\}$
+    \item we are looking for similar rows in the utility matrix
+    \item similar rows of utility matrix need to be found 
+    \item we predict items v that have high feedback and have been been consumed by similar users and not yet consumed by user u 
+\end{itemize}
+\item item based 
+
+\begin{itemize}
+    \item we want to find the set of items $\{v\}$ similar to those consumed by user u 
+    \item we are looking for similar columns in the utility matrix
+    \item we will predict those items which have not yet been consumed by user u 
+\end{itemize}
+\item these two approaches are distinct but conceptually similar
+\item there are two questions to think about 
+\begin{enumerate}
+    \item how do you define similarity between users and items
+    \item how do you aggregate feedback over a neighborhood
+\end{enumerate}
+\item this can be tough to scale Depending on the type of feedback. this works really well for Jaccard similarity with min has and LSH 
+\item this will not work for spatial data structures that can not deal with missing features 
+\subsection*{Latent factor model}
+\item this is a flexible framework for modeling feedback
+\item objective can be tuned to match some feedback mechanism (ratings, play count, purchase numbers)
+\item secondary objectives can be added (item bias, regularization, etc)
+\item Usually this model is easy to parallelize and scale up which is nice for this setting, can use Alternating least squares, and users are conditionally Independent given items and vice versa
+\item at the end you learn a low rank dense representation of the utility matrix. this Integrates will with spatial data structures (like knn), rank parameter (ie the rank of the matrix) that lets us control between complexity and expressivity
+\item the lf model is a bi linear model of user interactions that is given we are a interactions matrix $R\in \mathbb{R}^{n\times d}$ we learn matrices $U\in \mathbb{R}^{N\times 1}$ and $V\in \mathbb{R}^{D\times 1} : R=UV^{t}$ 
+\item think of u and v as embeddings or representations of the users and items in a common vector space 
+\item our objective function is called the the sum of least squared that is $$J(U,V)= \sum_{(i,j)\in \Omega}(R_{i,j}-<u_{i}, V_{j}>)^{2}$$ that is the sum of l2 distance between R and the inner product of U,V in what ever space they are in 
+and $$U,V = min_{U,V}J(U,V)$$
+\item here is an example of Latent factors and how we can use them to reconstruct our ratings matrix \\\includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 5.31.02 PM.png}
+\item this is also nice for the purposes of compression as we can store our data using a lot less information 
+\subsection*{Alternating least squares}
+\item we solve our objective by  doing the following 
+\item Repeat
+\begin{enumerate}
+    \item fix user factors U, and optimize $min_{V}J(U,V)$
+    \item fix item factors V and optimize user factors $min_{U}J(U,V)$
+\end{enumerate}
+\item when factors are fixed each item vectors V can be solved Independently from the item factors (allowing for parallelism)
+\item this problem is equivalent to alternative least squared regression 
+\subsection*{modeling implicit feedback }
+\item implicit feedback which is often count data (like views)is informative but hard predict 
+\item instead we can try to predict binary interactions but use counts to weigh terms thus our optimization problem becomes $$J(U,V)= \sum_{(i,j)\in \Omega}(1+\alpha(R_{i,j})< \mathbb{I}(R_{i,j}\geq 1)-u_{i}, V_{j}>)^{2}$$ where $\alpha$ is some weighting term 
+\item also could save space by dropping users or interactions with low counts 
+\item could also compress values by setting $R_{i,j}=log(1+R_{i,j}), \forall (i,j)\in \Omega\times\Omega$
+\subsection*{Handling new items}
+\item the Latent factor model gives items with no interactions no representative, this means that a new item (which by nature has no interactions) will never be recommender with out adjustments
+\item this is known as a \textcolor{blue}{cold start issue}
+\item we can solve the cold start problem by promoting new items, manual curation or complementing a Latent factor model with a content based model 
+\subsection*{content based model}
+\item suppose we have observed features $x_j$ for each item j (these could be things like news source, song writer, genre) they are logical features of the item that we can explicitly specify instead of latent factors we learn
+\item each user I gets there own interactions model $u_{i}$ and we model $$R_{i,j}\approx <u_ix_j>$$
+\item like the lf model but the items factors are made  explicit (that is we are only learning a representation of user factors)
+\item this can be limiting or over constraining 
+\item an issue with this is as we noted above content features (like audio features in songs ) are not always predictive of preferences
+\subsection*{content cold start}
+\item we train a LF model and learn $U,V$ such that item j has factor $v_j$
+\item we then regress item factors from features ie $$V_{i}\approx f(x_i)$$ that is we use our explicit item features to learn how to predict item factors
+\item thus we a new item can map into our feature space using the learned mappings $f(x_k)$ (what ever our regression model is)
+\subsection*{user warm start }
+\item what happens when a new user enters the system? 
+\item a lot of recommendation system ask for demographic data and examples of things you like. allowing new users to be quickly placed in the Collaborative filtering model before they start using the platform 
+\item call this a warm start 
+\subsection*{workflow in machine learning }
+\begin{enumerate}
+    \item obtain train and testing data 
+    \item fit model to training data (optimize some objective function)
+    \item evaluate the model using your objective on the testing data.
+\end{enumerate}
+\subsection*{workflow in recommendation systems}
+\item it is easy to think of observations (u,v) are Independent but that are not 
+\item keep in mind what we are predicting and what we value 
+\begin{itemize}
+    \item we care about satisfying a user 
+    \item this should influence how we evaluate the model
+\end{itemize}
+\item most interfaces provide many Recommendations at once 
+\item this means we need to evaluate a collection of Recommendations per user 
+\item then we can find the average across users to estimate system performance 
+\subsection*{partitioning data }
+
+\item recommendation models need some information on users to predict for them 
+\item so when splitting data \textcolor{red}{partition each user's observations into train and validation set separately} this means each user will be in both sets but not all of there observations will be in both (this is a key detail )
+\subsection*{Evaluating recommendation systems}
+\item our objective function is just a proxy for our main goal not the end goal it's self 
+\item early recommender systems focused really hard on unitizing mean squared error
+\item but that is not everything, think about how Recommendations are delivered are they as a ranked list like in amazon netflix or youtube or are they one at a time like in pandora or spotify shuffle 
+\item evaluations should reflect user behavior and how recomendations will be shown 
+\subsection*{bipartite ranking evaluations}
+\item the idea is to rank items by estimated relevance to users (or a query)
+\item using held out interactions we can determine which predictions were relevant (or positive) or irrelevant(negative)
+\item since we are predicting any irrelevant recommendation is a false positive
+\item we want all relevant documents to come before the irrelevant observations
+\item we assume all relevant documents are equally relevant
+\subsection*{ranking evaluations}
+\item we predict an ordered list of items the ground truth is a held out list of interactions
+\item AUC area under the ROC 
+\begin{itemize}
+    \item this tells us how often does a positive interaction come before a negative interaction
+    \item so if we had a list of predictions and the true labels of interactions on those predicted items were $-+-++--\rightarrow \frac{3+2+2}{12}=\frac{7}{12}$
+    \item the ROC curve shows $\frac{TP}{FP}$ at different classification thresholds 
+    \item the AUC is the area under that ROC it is an aggregate measure of performance across all classification thresholds (it is in effect the likelihood that the model scores a negative example more highly than a positive example  )
+\end{itemize}
+\item average Precision (AP)
+\begin{itemize}
+    \item for each positive interactions what fraction of higher ranked items were also positive
+    \item so given we output a recommendation list with true labels  $-+-++--$ we would have AP $\frac{1}{3}(\frac{1}{2}+\frac{1}{2}+\frac{3}{5})$ it is on average what proportion of the list at each step were positive predictions 
+\end{itemize}
+\item Reciprocal rank 
+\begin{itemize}
+    \item the inverse position of the first positive interaction
+    \item so for the same list that is $\frac{1}{2}$
+    \item this is good if we are recommending items one at  a time 
+\end{itemize}
+\subsection*{in real life }
+\item  these models have a feedback loop in reality so they are hard to evaluate on observational data 
+\item most real evaluation is done with A/B testing 
+\item and more systems are shifting to RL and Causal approaches 
+\subsection*{evaluation summary}
+\item evaluation is hard to do well 
+\item ranking is not everything 
+\item think about what the model is used for and how it makes these recommendations 
+\subsection*{Socio-cultural impact of
+recommender systems}
+\item \textcolor{blue}{filter bubble} diversity in what user's see falls over time as recommender systems rely on similarity
+\item this can either cause users to become board and leave the site 
+\item or become isolated and polarized in online echo chambers 
+\item what information can you use for a recommendation system (gender, age, race, zipcode ,income ) all may cause bias issues 
+\item the ethics are complex 
+\item have to think about if the model is bias, is the user population biased, how does the model treat users outside of the typical user population 
+\item who befits from this recommender system, is personalization needed  
+\item recommender systems are trained on past behavior so they can depend on the user population 
+\end{itemize}
+
+
+\end{document}

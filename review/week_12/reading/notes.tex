@@ -1,0 +1,68 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{A Firm
+Foundation
+for Private
+Data Analysis }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\item statistical data protection has a long history because it is important
+\item must focus on rigorous privacy guarantees
+\item accessing the database should reveal nothing about any individual in it. need to serperate the utility of a database from the increased risk of hard due to joining the database 
+\item this can be achived with low distortion
+\item the key idea is to randomize responses so as to effectively hide the presence or absence of any individual over the course of the life time of the database 
+\item what does it mean to preserve privacy and how and it be accomplished 
+\section*{how hard is hard}
+\item lets think about common approaches and there short comings
+\subsection*{large query set}
+\item one idea is to prevent user from making queries about specific individuals
+\item should not be able to search on users at all. 
+\subsection*{query auditing}
+\item each query to a database is evaluated in the context of the query history to determine if the response would discos information if so then refuse the query
+\item this is bad because it is computationally infeasible and the fact a query wont be discoed its gives information 
+\subsection*{sub sampling }
+\item can only query from a randomized subset of individuals 
+\item but this is not secure for those who appear in a subsample 
+\subsection*{input perturbation }
+\item either the data or the queries are modefied before the repone is given 
+\item randomized response flip a coin if it is heads always respond negativly if it is true respond truthly half the time 
+\item this does not work well for complex data 
+\subsection*{adding radnom noise to the output}
+\item will fail if done naievly 
+\item if the noise is added at the output and is mean zero can repeate a query adn average to get an aproximate true value 
+\subsection*{non private database}
+\item a system is blatantly non private if an adversary can constrct a canadite databse that agrees with teh real database D in some large proprtion of enteries by querying our system 
+\item if noise is bounded by some uppper bound e (that is a response cal only be e away from the truth ) than an adversary can reconstruct the database within 4 E positions of the true values 
+\item bounded noise can be defeated by some number of queries 
+\item so need to bound the number of quries 
+\subsection*{what is hard }
+\item linkage attack released data linked with auxilarray data to capture ifomratoion about the responsests other than what is released from the database 
+\item need to take into account auxilarray information
+\item anything that can be learned about an indivuadl from a statistcal database should be learnable with out acess to it 
+\subsection*{Differential Privacy}
+\item DP ensures that the ability of an adversary to inflect harm (or good) to any set of people should be teh same indepednt of wheter a person is in the dataset 
+\item consider two data bases $D, D'$ which differ by only one row  
+\item a function $K$ is $\epsilon$- Differential private if $\forall (D,D')$ and all $S\subseteq rank(K)$ $$P(K(D)\in S)\leq e^{\epsilon}P(K(D')\in S)$$
+\item this holds travially for anyone not in the dataset 
+\item if any one particpant were to be added to the database under this regine no output would become more or less liekely 
+\subsection*{achiving DP}
+\item for a function f the $\ell_1$ sensativity of f is gvien by  $$\delta f =max_{D,D'}||f(D)-F(D')||_{1}$$
+\item that is the sensativity is the max l1 difrent between the function with or without any one perosn 
+\item with leplacian noise we have highest density at zero, and for any $z,z':|z-z'|/leq 1$ the density is at most $e^{\epsilon}$
+\item also symetric about zero 
+\item can be expanded ot more dimesnions 
+\item need to add leplacian noise to each query even if the queries are chosen adaotily wih each sucessive queiry dpedont on the dprevious awnser this will work
+\item our expected error is the same regardless of the size of teh dataset 
+\item i think the rest is kinda in the weeds
+\item 
+\end{itemize}
+\end{document}

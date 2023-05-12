@@ -1,0 +1,50 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{THE GPU COMPUTING ERA }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\begin{itemize}
+\item this article is on the history and evolution of GPUs
+\item GPU's are really good for doing things in parallel make certain tasks much more computationally passable 
+\subsection*{GPU computing evolution}
+\item GPU's evolved to render graphics 
+\item rendering graphics are inherently a parallel problem
+\item a graphics programmer writes a single threaded program that draws one pixel and the GPU runs multiple instances of that program in parallel
+\item these types of machines scale really well in parallel
+\subsection*{GPU technology development }
+\item they were pushed by gaming more or less
+\subsection*{early GPUs}
+\item first was made in 1999 
+\item became more easily programable and flexible as time went on 
+\subsection*{unified computing and graphics GPUs}
+\item Cuda allowed programming in C on GPUs allowing for unified graphics and computing in the same language 
+\subsection*{GPU computing systems}
+\item at first single machine super computers with many GPUs were used 
+\item this then moved to servers 
+\subsection*{GPU computing eco systems}
+\item the PGU computing eco system is expanding quickly CUDA is the language interface
+\subsection*{CUDA scalable and parallel architecture}
+\item CUDA is a hardware adn software coprocesing architecture
+\item Enables GPU's with cuda to execute code written in common programming languages 
+\item extends a single threaded model to work in parallel with a limited set of abstractions 
+\item CUDA allows for the easy development of large highly scalable parallel programs 
+\item CUDA programs are organized into a host program consisting of one or more sequential threads running on the host CPU and and one or more parallel kernels running on the GPU 
+\item a kernel executes a sequential program on a set of light weight parallel threads 
+\item threads are organized into blocks and these blocks are organized in a gird 
+\item threads within a block can synchronize and communicate with each other quickly via block share memory
+\item threads from different blocks in teh same grid can coordinate via atomic operations in a global memory space.      
+\item kernel grids can synchronize via global barriers if they are sequential
+\item thread blocks must be independent within the program allowing scalability for the gpu 
+\item ideally want small simple programs that can be run in parallel across many different threads
+
+
+\end{itemize}
+\end{document}

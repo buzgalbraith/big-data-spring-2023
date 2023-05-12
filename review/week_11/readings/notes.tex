@@ -1,0 +1,62 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{The PageRank Citation Ranking:
+Bringing Order to the Web }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{abstract}
+\begin{itemize}
+\item the importance of webpages is subjective,
+\item this paper is about page rank, a method for rating web pages, with math and measuring human interest in them 
+\item compare page rank to a random web surger
+\section*{introduction}
+\item the web is big in diverse, there are also many types of users so hard to recommend search pages efficiently
+\item bit the web has meta data including link information that can be leveraged into structure of the web
+\subsection*{diversity of pages}
+\item webpages have really diverse uses, quality of information
+\item also there is profit incentives are people will try to play the system must be aware of that when building a search engine 
+\subsection*{page rank}
+\item page rank is a system to compute the relative importance of every web page based on the graph of the web 
+
+\section*{ranking every page on the web }
+\subsection*{link structure of the web}
+
+\item the web is a graph of forward links and incoming ie backwards link 
+\item we can never know all backwards links to a page but we can know all forward links form it 
+\item just counting the number of back nodes to a page is not a good measure of importance
+\item a page has a high rank if the sum of the ranks of it's backlinks are high. 
+\item this covers both caes when a page has many backlinks and when a page has a few highly ranked back links 
+\subsection*{definition of page rank}
+\item let u be a webpage $F_u and B_u$ be the set of forward and backward links pointing to that page
+\item let rank be defined as $R(u)=\sum_{v\in B_u}\frac{R_v}{N_v}$ so it an average of th rank of bank links 
+\item this is a recursive formula 
+\item if we put this in a matrix (that we first make a probaility matrix) from and iterate over a state vector, we end up with a steady state that coresponds to eigenvector coresponding to eigenvalue 1 
+\item this can be throught of  as a random surfer randomly going from one page to another 
+\item additionally we add a parameter that jumps the surfer randomly to another point in the graph to avoid loops 
+\item this steady state vector (is a probaility vector that can then directly rank the importance of pages)
+\subsection*{dangeling links}
+\item these are pages with no outgoing links 
+\item we remove dangeling links from the system until we have a steady state, then we know the rank of pages that lead to them at least, then we add them back as links from there outgoing page (which must be renormalized)
+
+\section*{searching with page rank }
+\item page rank does well with underspecfied queries 
+\item title matching and page rank work well togther 
+\subsection*{personalized page rank}
+\item this can be achived by changing the teleportation parameter to send users to pages we know they like to visit or have interacted with a lot in the past 
+
+
+\item there is a textbook reading but it more or less covers the same material as this so i am going to skip it for now. 
+
+
+
+
+
+\end{itemize}
+\end{document}

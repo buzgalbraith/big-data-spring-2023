@@ -1,0 +1,136 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{final review }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{RDMS}
+\begin{itemize}
+\subsection*{review}
+\item relational model (table and data frames ) standardizes data organization 
+\item schema constrains simplify making sure data is formatted correctly
+\item tables can speed up common access patterns 
+\item sql is good 
+\item constraining data organization makes high level operations easier 
+\subsection*{question}
+\item none :(
+\section*{map reduce}
+\item map takes input outputs key value pairs 
+\item reducer takes key values pairs and aggregates them on key value 
+\item combiners are optional but work work like reducers within map nodes means less data shuffling
+\item constraining the form of computation makes parallelism easier
+\subsection*{question}
+\item Combiners in map-reduce improve efficiency by decreasing the number of
+intermediate keys prior to the reduce phase.
+\item false combiners preserve the key structure but produce fewer values they fix key skew 
+\item map function in map reduce must produce at least one intermediate output 
+\item false
+\subsection*{HDFS}
+\item data nodes store partitions of large data block 
+\item name nodes store a map of file names/and the mapping of blocks to data nodes (that is what data node has what block of data )
+\item data is read and append only. this makes concurrent access easier 
+\item Replication factor more copies of each block up front means less computation and shuffling later on improves locality
+\item when the name  node fails spark fails it is not acid
+\section*{spark}
+\item RDD are the main abstraction 
+\item transformations take RDD to RDD and actions take RDD to results 
+\item lineage graphs represent overall computation
+\item provides a higher level interface for distributed compting than map reduce 
+\subsection*{question }
+\item compare a RDD vs a data frame 
+\item a RDD is closer to a list it is really fast with filters and maps 
+\item both have lazy execution 
+\item a dataframe is made up of RDDs good for more complex analysis
+\item data frames in spark are read only 
+\item true the values of a spark data frame can not be modfied in place
+\item each step in an RDD lineage graph computation must complete before starting the next. false that is one of the reasons we have lineage graphs 
+\item spark uses piellines to conect multiple map reduce programs 
+\item false spark does not use map reduce 
+\section*{column oriented storage}
+\item organizing data by columns makes things fater 
+\item we are constraiing data types so faster memory acess 
+\item data compresion makes faster comuncaiton 
+\item dremel is used for taking nested structed documents to tabular representations 
+\item tabels = coloumns = compression 
+\item parquet is the defualt for park 
+\item parquet can be faster than spark 
+\subsection*{questions}
+\item explain parquet and dremel 
+\item The Dremel system was designed to efficiently process all attributes for subsets of
+records in a dataset
+\item false that is the opesite of what it does 
+\item When written to HDFS, Parquet files locate different columns in different HDFS blocks.
+\item false parquet files devide  blocks by col
+\section*{dask }
+\item like spark but different
+\item works with the scipy stack 
+\item integrated into python directly so more flexible with difrent types of data questions 
+\item spakr is great when your data looks like dataframes 
+\item when your data is not data frams dask is good
+\item but more flexibility means less automatic optimziation 
+\item spark has bags that will hold it all
+\subsection*{questions}
+\item dask is entirely python, spark is slowed down a lot by going in and out of python 
+\item dask is less polished 
+\item dsak is suited for working with python packages that already exist (also can wrok better on a single machine )
+\item spark is better for badnas like things but dask uses pandas directly
+\item HOW TO OPTIMIZE: in SQL, Spark and Dask, i.e indices (types and uses), partitions, when to use
+RDDs/Data frames. Also, when to use each of the frameworks.
+\item use filters as quickly as posisble to cut down your data 
+\item understand your lineage graph 
+\item optimize partiiton strcuture to avoid wide dependinceis
+\subsection*{similarity search}
+\item minhas, represent each set in a colection by the smallest ha outputs of its ellements 
+\item probailtiy that sets colide is the jaccard similairt 
+\item use multiple hashes to estimate jacard similarity
+\item instead of paritioning us a hash function that is imperfect if there are collsiosn thsoe are candidte pairs do more similiary search on those 
+\item combine multiple min hash outputs togther as a block 
+\item block size + number of blocks can be used to boost likelyhood of collison 
+\item idea generlies to other distance metrics 
+\subsection*{questions}
+\item what is mutlip probe lsh 
+\item multi probe lsh is insead of looking at ecact mathces for each block look at ner by blocks as well 
+\item spatial trees just devide hte space uing a tree name explains it well
+\item why is lsh more efficient 
+\item we are not partiioning and lowering the number of candite pair 
+\subsection*{quiz questions}
+\item min hash fails when a single element bellongs to all sets in a collection 
+\item true if any hash picks this item as a minimzer than all sets coldies 
+\section*{reproducibility}
+\item reproducability rellyimportant in big tdata 
+\item teher are lall kinds of best pactices 
+\item rpiecjt folder standaried 
+\item keep contetual information in reamdem
+\item neseative data kept in secured reposity
+\section*{recomender systems }
+\item idea predict which items a user will ineract with 
+\item method popularity mdoel + dampening factor 
+\item latnet factor model mdoel interactions as iner product of two vecors 
+\item implicit vs explicit feedback 
+\subsection*{search , ranking evaluation}
+\item can use min hash adn lsh to identfy similar documnetns 
+\item page rank orders documetns by tehre porability of capture a random walk 
+\item core compation is learing eigenvaect, and transiton matrix 
+\item cna use power iteration 
+\subsection*{difenetial privacy}
+\item being able to release data is criticla for reproducability but needs to be balancedd
+\item k annonomity is not enough 
+\item de anomized atatack highly acrute 
+\item difenetial pricay works throgu han api 
+\item add lapplacian nosie to give plase dinaiablilty 
+\item sensativity maxmial difrnet in output given a single row difrent extmeral agreates high slensiv each
+\item multiple queries reduce dp 
+\subsection*{gpus}
+\item computaiton parllelism dedicated hard ware 
+\item more restricite prpgram control flow 
+\item but less resitricte in terms of data acess 
+\item limited sharing of inomration betwen computaiton threads 
+\item 
+\end{itemize}
+\end{document}

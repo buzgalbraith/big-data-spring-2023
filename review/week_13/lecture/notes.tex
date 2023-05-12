@@ -1,0 +1,141 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{week 13: GPU's }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{GPUs}
+\begin{itemize}
+\subsection*{gradient descent}
+\item remember serial gradient descent we more or less do with a basic for loop is $O(i*n)$ where i is the number of points times the number of iterations
+\item in spark we can run the for loop in parallel, but need to run the outer loop serially so it is $O(i*\frac{n}{k})$ where k is the number of worker nodes  
+\item we could use different algorithms to optimize this more 
+\item or we could use a different type of computer ie a GPU
+\subsection*{why GPU's}
+\item speed ups come from constraint so what are we constraining in a GPU?
+\section*{GPU and the rendering pipeline }
+\subsection*{3d rendering}
+\item to render 3d graphics we can use
+\item  inputs: 3d mesh, textures, light sources, camera positions 
+\item outputs: a 2d array of pixels (that is a rendered scene) 
+\item video games must do this with a constant time constraint 
+\item so computationally there a challenges bases on the complexity of the scene and the output resolution 
+\subsection*{the pipeline}
+\item here is what the pipeline looks like \\ \includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 11.17.53 PM.png}
+\subsection*{vector processing }
+\item the idea is to perform the coordinate transformations for each model 
+\item also need the camera transformations
+\item camera lense / field of view 
+\item these are mostly linear transformations (rotations, translations and scales )
+\item all vertices are mapped to camera coordinates (x,y,z) 
+\subsection*{rasterizer}
+\item scans the scene for data to render at each (x,y) pixel 
+\item object vertices do not necessarily line up to pixel coordinates so need 3d meshes to be calculated 
+\item outputs pixels containing data to render at each point 
+\item this step is not programable
+\subsection*{fragment processing}
+\item  texture mapping and lighting 
+\item outputs color values for each fragment
+\item may include objects that are clouded and thus discarded later 
+\subsection*{parallelism in graphics}
+\item the vertex processor and fragment processor parts that are programable are called shaders
+\item linear transformations are by nature independent to each vertex 
+\item texture and lighting is independent across fragments
+\item specialized hardware can parallelize to meet real time constraints 
+\item to be cost effective each vertex or pixel processor must be simple
+\subsection*{shaders}
+\item shaders are short programs that are applied to independently to each vertex or fragment 
+\item they are kinda like mappers 
+\item shaper code tends to have a simple control flow 
+\subsection*{specialized shader units}
+\item older gpus had separate processors for vertex shading and pixel shading 
+\item this works well if the loads between these two task were ballandce but they are not always 
+\item unbalanced load is idle processors ie key skew 
+\subsection*{general purpose GPUs}
+\subsection*{shaders to kernels}
+\item general purpose GPU's remove the distinction between vector and pixel cores 
+\item shaders are replaced by kernel abstractions 
+\item this allows cores to operate at any core 
+\item the CUDA api controls which core get which task 
+\subsection*{gpu design }
+\item here is what a traditional computer design looks like \\includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 11.34.03 PM.png}
+\item the ALU (arithmetic logic units ) are for basic math operations (ie computation )
+\item the control i for program flow 
+\item the cache is on PCU memory 
+\item the DRAM is main system memory 
+\item a GPU is organized like this \\includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 11.34.17 PM.png}
+\item they have the the same components but in different proportions 
+\item overall computing looks something like this \\includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 11.37.22 PM.png}
+\subsection*{threads blocks and grids}
+\item cuda arranges kernel execution into threads blocks and grids
+\subsection*{thread}
+\item a thread does on execution all threads execute the same kernel program  but on different pieces of data 
+\item has local private memory
+\subsection*{blocks}
+\item a group of possibly related threads 
+\item has shared memory accessible by all threads
+\subsection*{grid}
+\item a collection of blocks 
+\item all grid cells have access to shared global memory
+\subsection*{SAXPY}
+\item here are two programs to calculate an affine translations \\ \includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 11.43.40 PM.png}
+\item the serial takes O(n), but there are no computational dependencies so can be paralleled
+\item the cuda one shows how cuda runs, more or less run kernel for all block if hte thread id is n output it 
+\item data access is managed by the thread
+\item have access to blockid.x (current block id ), blockdim.x (size of current block) threadid.x (current thread within the block)
+\item there are 256 threads per block so we want to try to break our computation up into 256 pieces per block 
+\item if $i<n$ avoids out of bound errors from integer math in block derision 
+\item cuda lets you access data out side of your thread and block index
+\subsection*{thread execute and warps}
+\item threads within a single block execute in parallel via single instruction multiple thread design 
+\item threads run in groups of 32 called warps
+\begin{itemize}
+    \item thread start at teh same instruction but can follow different execution paths 
+    \item warp finishes when all threads finish 
+    \item threads should follow a common path (that is there should not be a tone of conditionals)
+    \item threads can be explicitly synchronized
+\end{itemize}
+\item blocks need not execute all simultaneously (can put them on different codes) but this is why you can not share memory between blocks
+\subsection*{threads blocks grids and hardware}
+\item like mappers kernels must be independent from one another to and able to execute in any order  (at least at the block level)
+\item unlike mappers kernels are not pure functions, they do not have  return values at all they write output to a pre allocated memory buffer
+\item to exploit memory within blocks must be careful about organizing data 
+\item different hardware will have different number of cores 
+\subsection*{complex programs}
+\item cuda kernels are usually simple operations like matrix multiplication
+\item usually we want to combine these to make a complex program (so multiple independent kernel functions that together make a complex program) 
+\item not dissimilar from in spark doing transformations and actions in multiple parts
+\subsection*{pitfalls of gpu usage}
+\item Efficient usage relies on keeping all cores busy at all times 
+\item usually an idle is waiting on data from the cpu 
+\item memory communication between gpu and cpu is usually the biggest bottle neck 
+\item try to keep as much data on the gpu as possible with out transfers
+\item programs with complex control flows (ie a lot of conditionals) are tough for gpus
+\item writing custom code on GPU's is really tough so use existing frame works
+\subsection*{why gpus for deep learning}
+\item neural nets consist of alternating between simple operations
+\item these operations have a parallel structure
+\item further there is almost no control flow or loops 
+\subsection*{software}
+\subsection*{what tools to use}
+\item for deep learning use tensor flow or pytorch 
+\item for traditional ml use RAPIDS
+\item for you own code use numba or raw cuda 
+\subsection*{RAPIDS}
+\item uses arrows for in memory column oriented storage on the GPU
+\item this is good for implementing data frames on a gpu 
+\item minimizes overall data transfers
+\item integrates well with dask
+\subsection*{numba }
+\item classically cuda but in python
+\item is good if you dont want to write code in c 
+
+
+\end{itemize}
+\end{document}

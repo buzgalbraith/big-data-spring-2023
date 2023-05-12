@@ -1,0 +1,92 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{lecture 12: Socio-cultural impact }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+
+\section{Socio-cultural impact of recommender systems}
+\begin{itemize}
+\item recommender systems killed buz feed :(
+\item the rest of this was covered in the similarly lecture
+\section*{privacy and de-anonymization}
+\subsection*{open data and anonymization }
+\item  scientific process is built on open data but human data can be sensitive
+\item anonymization of data is not enough 
+\item nor is just providing statistical summaries of the data
+\subsection*{strategies for protecting users in open data}
+\item could hash user names to a key 
+\item could add noise to observations (but can be undone in some cases and can bias results)
+\item limit users to some number of queries 
+\item just provide statistical summaries (this is not good either)
+\subsection*{what is a de-anonymization attack}
+\item suppose we have “anonymized” dataset $R=(r_1...r_n)$
+\item given some partial or even potentially inaccurate information for an individual, can we identify them or get more information about them?
+\item yeah in most cases 
+\subsection*{why k-anonymity is not enough }
+\item $\textcolor{red}{k - anonymity}$ is the idea that we only include a row in a data set if each attribute in that row has the same value in at least k other rows. so no single attribute is identifiable 
+\item but combinations of attributes are identifiable in most cases in large dimensional collections 
+\item people are high dimensional  and idiosyncratic which is often reflected in there data 
+\item for rows $R_u, R_v $ define there similarly as $sim(R_u, R_v)=\frac{\sum_{i}Sim(R_{u,i}, R_{v,u})}{|R_{u}\cup R_{v}|}$  that is, the sum of there similarly in each attribute over the cardinality of there union 
+\item given a partial observation q compute the similarly in each row 
+\item determine a threshold by comparing top scores in the second most similar row 
+\item if it is sufficiently large (ie it si much closer to one row than any other ) report a match 
+\item otherwise report no match. 
+\item how much partial data is required for this? 
+\item observation similarly if $|R_{u,i}-R_{v,i}|=0$ the to rows are exactly the same 
+\item if $|R_{u,i}-R_{v,i}|\leq 1$ they differ by at most 1 unit
+\item we can define a threshold naturally as confidence interval $sim(q,R_1)-sim(q,R_1)>1.5*\sigma_{w}(sum(w,R_w))$ so that is (we define our threshold as 1.5 times the variance of the similirty between q and the rows)
+\item with 8 ratings (if we perturb two ratings ) and add 14 days of error on the data data 99\% of records can be identifiable
+\subsection*{why does this matter}
+\item breaches are irrevocable and may have implications on peoples future privacy
+\item once data is out there it can be used in linkage attacks 
+\section*{Differential privacy}
+\subsection*{what are we putting out to the world }
+\item a whole dataset
+\item a set of statistic measured on teh data 
+\item a statistical model from the data 
+\item an api to ask queries about the data? 
+\subsection*{Differential privacy}
+\item the high level idea is that \textcolor{red}{if an individual is excluded from the data the results of a computation should not change }
+\item we achieve this by randomizing teh computation carefully 
+\item DP is a property of the algorithm not the data 
+\item for any two datasets D, D' diverging by one row ie $D'=D+\{x\}$
+ a randomized algorithm is \textcolor{red}{$\epsilon$ differentially private } if $$P(A(D)\in S)\leq e^{\epsilon} P(A(D')\in S)$$ $\forall S\in range(A)$
+\item the idea is if we observe a certain output we should not be relibaly able to tell if it came from A(D) or A(D')
+\item DP says $P(A(D)\in S)\leq e^{\epsilon}P(A(D')\in S) $
+\item for $\epsilon\approx 0$ we will have $P(A(D)\in S)\leq P(A(D')\in S)$
+\item DP is symetric 
+\item when $\epsilon$ is large the bound is louser 
+\subsection*{tuning the noise}
+\item say we have a vector value private fucntion $f:D\rightarrow R^{d}$
+\item how different are $f(d)$ and $f(D')$ if the two data set differ only by a single row? 
+\item call the sensitivity of f $\Delta f= max_{D,D'}\sum_{i}[f(D)[i]-F(D')[i]]$
+\item let $A(D)=f(D)+z$ where $z[i]\sim Laplace(0,\frac{\Delta f}{\epsilon})$ where if this is the case 
+\item in this case A is $\epsilon$ differentially private 
+\item \includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 10.28.35 PM.png}
+\item that is what a Laplacian looks like versus a guassian 
+\item so the key is that the tails are wider and it is zero mean and symetric about the origin 
+\subsection*{why is this a good idea }
+\item say we have a dataset $X=[8,9,10,11,12]$ if we compute the mean of the data then remove 8 and recompute the mean of data 
+\item the mean of the two data sets have shifted but but if we find that $A(D)=105$ we can see that with either of our datasets there is not a low probability of this outcome 
+\item so there is no real evedince that 8 was no included in the data set just becuase ouf our result 
+\item \includegraphics*[width=10cm]{images/Screenshot 2023-05-11 at 10.33.06 PM.png}
+\item a lot of noise means high privacy
+\item note that external aggregators like $min, max$ are very sensative (so are hard to make differentially private) so it is better to report percentiles 
+\item sensitivity goes down as n decreaes 
+\item privacy is easier with big data sets 
+\subsection*{what about multiple queries}
+\item Differential privacy is at the query level so each time you query you will get a random results
+\item \textcolor{blue}{Differential privacy composition theorem:} if you make a sequence of queries $A_i$ each being $\epsilon_i-$DP then teh results will be $\sum_{i}\epsilon_i$ DP 
+\item the good news any deterministic  post procesing preserves privacy
+\item DP is a property of an algorithm not a dataset
+\item privacy requires scale 
+\item 
+
+\end{itemize}
+\end{document}

@@ -1,0 +1,74 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{tikz,graphicx,hyperref,amsmath,amsfonts,amscd,amssymb,bm,cite,epsfig,epsf,url}
+
+\title{Lecture 11: Graphs and Rankings }
+\author{wbg231 }
+\date{January 2023}
+
+\begin{document}
+
+\maketitle
+\begin{itemize}
+\item about half this lecture was spent on material from the last lecture 
+\section{page rank}
+\item early search engines relied on matching query text 
+\item pages were indexed and searched 
+\item this was super game-able
+\subsection*{spam attacks}
+\item a website could just put a lot of popular search terms on there webpage and text matching search engine would rank that page highly even if it had no actual content 
+\subsection*{page rank uses the network}
+\item the key insight is that the structure of the web has informative content 
+\item web page publishers are more likely to publish links to pages they trust 
+\item it is easy to make a spammy page,but hard to get others to link to it 
+\subsection*{the random surfer model}
+\item think of the web as a directed graph nodes are pages, edges are links
+\item we model the users activity as a random walk 
+\item that is given they are currently at page u they have a uniform chance of going to any page linked to by page u ie $$P(u|v)=\frac{\text{number of links from u to v}}{\text{total number of links out of u}}$$
+\item uses are more likely to land in pages with high in degrees (that is linked to by many other pages )
+\subsection*{markov chains}
+\item Define a markov matrix $M\in \mathbb{R}^{N\times N}$ where n is the total number of pages we are considering and $M_{v,u}=P(v|u)=$ the likelihood of going from page u to page v   
+\item M is a \textcolor{red}{stochastic matrix} ie it is non-negative and has columns that sum to 1 
+\item let $p\in \mathbb{R}^{n}$ be a state or probability vector that that  all enteries of p are non-negative and it sums to 1 
+\item so $Mp\in \mathbb{R}^{n}$ is a marginal probability vector containing the probability of ending up at any page in the next step regardless of where you started this step (this is also a state vector)
+\subsection*{steady state}
+\item a steady state dissolution is a state vector $v: v=Mv$ that is a eigenvector associated to eigenvalue 1 
+\item this will only occour if the graph is strongly connected and acyclic or  (aperiodic) that is there are no points where it can get stuck in a loop (both of these are easy to force on the matrix)
+\item so $PageRank(u)=p[u]=$ the probability of random surfer being at node u in the steady state 
+\item we can find this steady state with a nice property of eigenvectors with value 1 \textcolor{red}{ power iterations} to find the steady state eigenvector that is regardless of the starting state of the distribution $p=lim_{t\rightarrow \infty}(Mv)^{t}$ where v is an arbitrary vector and p is our steady state matrix
+\item keep in mind when working in python $vals,vecs=np.linalg.eig(m)$ vecs will be $\ell_{2}$ normalized that is $v=\frac{v}{||v||_{2}}$ (will hold) but probability distributions are $\ell_{1}$ normalized that is $p=\frac{v}{||v||_{1}}\neq v$ so just divide the vector $v$ by it's $\ell_1$ norm
+\subsection*{matrix vector multiplication parallelism}
+\item note that each output vertex $Mp_{v}=<M[v],p>$ is independent $\iff p_{v}=\lim_{t\rightarrow \infty}(M[u,:]u)^{t}$ is independent so we can Parallelize over the rows of our eigenvectors
+\item we only need to generate keys for the observed edges (that is if we know one web page does not lead to another we can ignore it)
+\item the number of vertices linking to webpage v is the in degree of v
+\subsection*{the graph must be connected}
+\item if the graph is not connected (meaning there must be one some path confecting all vector in at least one direction) the rank is less than the total number of pages and thus there is not a unique stationary distribution
+\item if a graph has no outgoing edges we can just say that all edges lead back ot it's self to keep the matrix well formed 
+\item nodes that don't lead any where (called sinks or spider traps ) will dominate the page rank steady state described above
+\item so if the graph is not \textcolor{red}{strongly connected} (that is there is a path going  in and out of each node ) or there are sinks (ie pages with no outgoing links ) we can just add a teleportation parameter
+\item \textcolor{green}{teleportation} with probability a follow a link as normal, and with probability (1-a) jump to uniformly at random to a webpage 
+\item that is at each step $M[u,v]=a*M[u,v]+(1-a)\frac{1}{n}$
+\section*{page rank and search }
+\item page rank scores based on the number of links pointing to a node, not the content of that node 
+\item so a basic idea could be use some similarly search method to do a text search for candidate then rank those pairs using page rank 
+\subsection*{personalized page rank}
+\item uniform teleportation is not realistic jumping to any page does not described how people work 
+\item let $e$ be our teleportation vector then our power iteration problem becomes $$p=(M')p=(a*M+(1-a)\frac{1}{n}ee^t)p = a*MP+(1-a)\frac{1}{N}ee^tp=a*MP+(1-a)\frac{1}{N}e=a*MP+(1-a)q$$ where q is our personalization probability vector  
+\item and $q$ is the probabilty distribution of a user going to some set of sites they like 
+\subsection*{Efficiency of personalized page rank }
+\item personalized page rank requires re-running power iteration to compute $$p=a*Mp+(1-a)*q$$
+\item if we fix q this gets a lot faster 
+
+\subsection*{Distributed page rank}
+\item the core computation is matrix multiplication (can be done with map reduce ) or spark pretty easily
+\section*{social impacts of search }
+\subsection*{issues with page rank}
+\item the ric get richer, a popular page will become more popular, it is hard for new pages to gain traction, similar to cold start 
+\item link popularity may not be the same as accuracy 
+\item steady state distributions are not how people behave in reality
+\item the model is not explainable users 
+
+
+
+\end{itemize}
+\end{document}
